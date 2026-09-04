@@ -3,6 +3,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Spectral:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://accounts.google.com/gsi/client" async defer></script>
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <style>
   :root{
     --ink:#1F1F1F;
@@ -623,16 +624,73 @@
     renderAll();
   }
   function closeCheckout(){ state.checkout = null; renderAll(); }
+
+  // ---------- Razorpay payment ----------
+  var RAZORPAY_KEY_ID = 'rzp_live_TXJVzZOW7PwzgW';
+
+  function checkoutTotalNum(){
+    var co = state.checkout;
+    if (!co) return 0;
+    var subtotalNum = co.items.reduce(function(sum, it){ return sum + findProduct(it.id).price * it.qty; }, 0);
+    var shippingCost = state.delivery === 1 ? 9.99 : 0;
+    var taxNum = subtotalNum * 0.05;
+    return subtotalNum + shippingCost + taxNum;
+  }
+
+  function completeOrder(paymentId){
+    var num = 'PRZ' + Math.floor(100000 + Math.random() * 900000);
+    var d = new Date(Date.now() + 5 * 86400000);
+    state.checkout.step = 3;
+    state.order = {
+      number: num,
+      eta: d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+      paymentId: paymentId || null
+    };
+    renderAll();
+  }
+
+  function openRazorpayCheckout(){
+    if (!window.Razorpay){
+      showToast('Payment gateway failed to load — please try again');
+      return;
+    }
+    var totalNum = checkoutTotalNum();
+    var f = state.form;
+    var rzp = new Razorpay({
+      key: RAZORPAY_KEY_ID,
+      amount: Math.round(totalNum * 100),
+      currency: 'INR',
+      name: 'Prism Yoga',
+      description: 'Order payment',
+      prefill: { name: f.fullName, email: f.email, contact: f.mobile },
+      theme: { color: '#4F7C6B' },
+      handler: function(response){
+        completeOrder(response.razorpay_payment_id);
+      },
+      modal: {
+        ondismiss: function(){
+          showToast('Payment cancelled');
+        }
+      }
+    });
+    rzp.on('payment.failed', function(){
+      showToast('Payment failed — please try again');
+    });
+    rzp.open();
+  }
+
   function checkoutNext(){
     if (state.checkout.step === 2){
-      var num = 'PRZ' + Math.floor(100000 + Math.random() * 900000);
-      var d = new Date(Date.now() + 5 * 86400000);
-      state.checkout.step = 3;
-      state.order = { number: num, eta: d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) };
+      if (state.payment === 2){
+        // Cash on Delivery — no online payment needed
+        completeOrder(null);
+      } else {
+        openRazorpayCheckout();
+      }
     } else {
       state.checkout.step = Math.min(3, state.checkout.step + 1);
+      renderAll();
     }
-    renderAll();
   }
   function checkoutBack(){
     state.checkout.step = Math.max(0, state.checkout.step - 1);
@@ -970,11 +1028,13 @@
     var subtotalNum = co.items.reduce(function(sum, it){ return sum + findProduct(it.id).price * it.qty; }, 0);
     var flowLabel = co.mode === 'buynow' ? 'BUY NOW CHECKOUT — SINGLE PRODUCT' : 'CART CHECKOUT — ' + co.items.length + ' ITEM(S)';
     var stepTitle = STEP_TITLES[co.step];
-    var nextLabel = co.step === 2 ? 'Place Order' : 'Continue';
     var shippingCost = state.delivery === 1 ? 9.99 : 0;
     var shippingLabel = shippingCost === 0 ? 'Free' : '₹' + money(shippingCost);
     var taxNum = subtotalNum * 0.05;
     var totalNum = subtotalNum + shippingCost + taxNum;
+    var nextLabel = co.step === 2
+      ? (state.payment === 2 ? 'Place Order' : 'Pay ₹' + money(totalNum))
+      : 'Continue';
 
     var pillsHtml = STEP_TITLES.map(function(t, i){
       return '<div class="pill' + (i === co.step ? ' active' : '') + '">' + (i + 1) + '. ' + t + '</div>';
@@ -1019,6 +1079,7 @@
           '<div class="confirm-check">&#10003;</div>' +
           '<div class="confirm-title serif">Order Confirmed</div>' +
           '<div class="confirm-order">Order #' + esc(order.number) + ' &middot; Estimated delivery ' + esc(order.eta) + '</div>' +
+          (order.paymentId ? '<div class="confirm-ship">Payment ID: ' + esc(order.paymentId) + '</div>' : '') +
           '<div class="confirm-ship">Shipping to ' + esc(f2.address) + ', ' + esc(f2.city) + ', ' + esc(f2.state) + ' ' + esc(f2.pin) + '</div>' +
           '<div class="confirm-actions">' +
             '<button type="button" class="btn-solid" style="flex:none;" data-role="close-checkout">Continue Shopping</button>' +

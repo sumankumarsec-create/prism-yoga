@@ -645,6 +645,45 @@
   // ---------- Razorpay payment ----------
   var RAZORPAY_KEY_ID = 'rzp_live_TXJVzZOW7PwzgW';
 
+  // ---------- order notification backend ----------
+  var ORDERS_WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbyZ2m2TLEqDoDxNc7PV7sjIC8uzMxgRPMXOQVuIZq6Ez8WciQzl-hvnIVp7y4SHIs8hTQ/exec';
+  var ORDERS_WEBAPP_TOKEN = '_mylkxLRFpUc0a5Cv0gd8JyupmmZSWj4';
+  var DELIVERY_LABELS = ['Standard Shipping', 'Express Shipping'];
+  var PAYMENT_LABELS = ['Credit / Debit Card', 'UPI', 'Cash on Delivery'];
+
+  function notifyOrderBackend(orderNumber, paymentId){
+    try {
+      var co = state.checkout;
+      var f = state.form;
+      var items = co.items.map(function(it){
+        var p = findProduct(it.id);
+        return { name: p.name, qty: it.qty, price: p.price };
+      });
+      var subtotalNum = co.items.reduce(function(sum, it){ return sum + findProduct(it.id).price * it.qty; }, 0);
+      var shippingCost = state.delivery === 1 ? 9.99 : 0;
+      var taxNum = subtotalNum * 0.05;
+      var totalNum = subtotalNum + shippingCost + taxNum;
+      var payload = {
+        orderNumber: orderNumber,
+        paymentId: paymentId || '',
+        fullName: f.fullName, email: f.email, mobile: f.mobile,
+        address: f.address, city: f.city, state: f.state, pin: f.pin,
+        items: items,
+        subtotal: subtotalNum.toFixed(2),
+        shipping: shippingCost.toFixed(2),
+        tax: taxNum.toFixed(2),
+        total: totalNum.toFixed(2),
+        paymentMethod: PAYMENT_LABELS[state.payment] || '',
+        deliveryMethod: DELIVERY_LABELS[state.delivery] || ''
+      };
+      fetch(ORDERS_WEBAPP_URL + '?token=' + ORDERS_WEBAPP_TOKEN, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(payload)
+      }).catch(function(){ /* order still succeeds for the customer even if logging fails */ });
+    } catch (err){ /* never block checkout on a notification failure */ }
+  }
+
   function checkoutTotalNum(){
     var co = state.checkout;
     if (!co) return 0;
@@ -657,6 +696,7 @@
   function completeOrder(paymentId){
     var num = 'PRZ' + Math.floor(100000 + Math.random() * 900000);
     var d = new Date(Date.now() + 5 * 86400000);
+    notifyOrderBackend(num, paymentId);
     state.checkout.step = 3;
     state.order = {
       number: num,

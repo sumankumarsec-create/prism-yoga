@@ -2,6 +2,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Spectral:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 <style>
   :root{
     --ink:#1F1F1F;
@@ -52,6 +53,12 @@
   .nav span{ cursor:default; }
   .header-actions{ display:flex; align-items:center; gap:22px; font-size:13px; font-weight:500; }
   .login{ white-space:nowrap; }
+  .auth-area{ display:flex; align-items:center; }
+  #googleBtnContainer{ line-height:0; }
+  .user-chip{ display:flex; align-items:center; gap:8px; white-space:nowrap; }
+  .user-avatar{ width:28px; height:28px; border-radius:50%; object-fit:cover; background:var(--bg-swatch-warm); }
+  .user-name{ font-size:13px; font-weight:500; max-width:120px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .signout-btn{ background:none; border:none; color:var(--muted); cursor:pointer; font-size:12px; text-decoration:underline; font-family:inherit; padding:0; }
   .icon-btn{ font-size:16px; cursor:pointer; background:none; border:none; color:var(--ink); padding:0; line-height:1; }
   .icon-wrap{ position:relative; cursor:pointer; }
   .badge{ position:absolute; top:-8px; right:-10px; background:var(--sage); color:#fff; font-size:10px; width:16px; height:16px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:600; }
@@ -255,7 +262,14 @@
         <span>HOME</span><span>SHOP</span><span>BLOG</span><span>PORTFOLIO</span><span>PAGES</span>
       </nav>
       <div class="header-actions">
-        <span class="login">LOGIN / REGISTER</span>
+        <div class="auth-area" id="authArea">
+          <div id="googleBtnContainer"></div>
+          <div class="user-chip" id="userChip" hidden>
+            <img class="user-avatar" id="userAvatar" alt="" />
+            <span class="user-name" id="userName"></span>
+            <button type="button" class="signout-btn" id="signOutBtn">Sign out</button>
+          </div>
+        </div>
         <button class="icon-btn" type="button" aria-label="Search">&#128269;</button>
         <div class="icon-wrap" id="wishlistToggle" role="button" tabindex="0" aria-label="Open wishlist">
           <span class="icon-btn" style="cursor:pointer;">&#9825;</span>
@@ -569,7 +583,8 @@
     cartOpen: false, wishlistOpen: false,
     checkout: null, // {mode, items:[{id,qty}], step}
     form: { fullName: '', mobile: '', email: '', address: '', city: '', state: '', pin: '' },
-    delivery: 0, payment: 0, order: null, toast: ''
+    delivery: 0, payment: 0, order: null, toast: '',
+    user: null
   };
   var toastTimer = null;
 
@@ -1085,6 +1100,90 @@
     renderCheckout();
   }
 
+  // ---------- Google sign-in ----------
+  var GOOGLE_CLIENT_ID = '590946552242-ptai94bp8lp1mvb9qsd1gofj5hnsnjb0.apps.googleusercontent.com';
+  var AUTH_STORAGE_KEY = 'prismYogaUser';
+
+  function decodeJwt(token){
+    try {
+      var base64Url = token.split('.')[1];
+      var base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      var jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c){
+        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+      }).join(''));
+      return JSON.parse(jsonPayload);
+    } catch (e){ return null; }
+  }
+
+  function renderAuthArea(){
+    var btnContainer = document.getElementById('googleBtnContainer');
+    var chip = document.getElementById('userChip');
+    if (!btnContainer || !chip) return;
+    if (state.user){
+      btnContainer.hidden = true;
+      chip.hidden = false;
+      document.getElementById('userAvatar').src = state.user.picture || '';
+      document.getElementById('userName').textContent = state.user.name || state.user.email || 'Signed in';
+    } else {
+      btnContainer.hidden = false;
+      chip.hidden = true;
+    }
+  }
+
+  function handleCredentialResponse(response){
+    var payload = decodeJwt(response.credential);
+    if (!payload) return;
+    state.user = { name: payload.name, email: payload.email, picture: payload.picture };
+    try { localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(state.user)); } catch (e){}
+    renderAuthArea();
+    showToast('Signed in as ' + (payload.given_name || payload.name || payload.email));
+  }
+
+  function signOut(){
+    state.user = null;
+    try { localStorage.removeItem(AUTH_STORAGE_KEY); } catch (e){}
+    if (window.google && google.accounts && google.accounts.id) {
+      google.accounts.id.disableAutoSelect();
+    }
+    renderAuthArea();
+    showToast('Signed out');
+  }
+
+  var signOutBtnEl = document.getElementById('signOutBtn');
+  if (signOutBtnEl) signOutBtnEl.addEventListener('click', signOut);
+
+  function initGoogleAuth(){
+    try {
+      var saved = localStorage.getItem(AUTH_STORAGE_KEY);
+      if (saved) state.user = JSON.parse(saved);
+    } catch (e){}
+    renderAuthArea();
+
+    function setup(){
+      if (!(window.google && google.accounts && google.accounts.id)) return false;
+      google.accounts.id.initialize({
+        client_id: GOOGLE_CLIENT_ID,
+        callback: handleCredentialResponse,
+        auto_select: false
+      });
+      if (!state.user){
+        google.accounts.id.renderButton(document.getElementById('googleBtnContainer'), {
+          theme: 'outline', size: 'medium', shape: 'pill', text: 'signin_with'
+        });
+      }
+      return true;
+    }
+
+    if (!setup()){
+      var tries = 0;
+      var poll = setInterval(function(){
+        tries += 1;
+        if (setup() || tries > 40) clearInterval(poll);
+      }, 250);
+    }
+  }
+
   renderAll();
+  initGoogleAuth();
 })();
 </script>

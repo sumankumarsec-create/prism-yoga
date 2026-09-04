@@ -76,7 +76,7 @@
 
   .main-image{ position:relative; aspect-ratio:1/1.05; background:var(--bg-swatch); border-radius:8px; overflow:hidden; }
   .main-photo{ position:absolute; inset:0; }
-  .main-photo img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
+  .main-photo img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; cursor:zoom-in; }
   .main-photo .ph{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; flex-direction:column; color:var(--muted-soft); text-align:center; }
   .main-photo .ph b{ display:block; font-size:13px; letter-spacing:0.05em; font-weight:500; }
   .image-view-label{ position:absolute; bottom:12px; right:12px; background:rgba(0,0,0,0.55); color:#fff; font-size:11px; padding:4px 8px; border-radius:3px; }
@@ -129,8 +129,27 @@
 
   /* ---------- gallery ---------- */
   .gallery-row{ display:grid; grid-template-columns:repeat(3,1fr); gap:20px; padding:0 0 64px; }
-  .gallery-cell{ aspect-ratio:4/3.3; background:var(--bg-swatch); border-radius:8px; overflow:hidden; display:flex; align-items:center; justify-content:center; color:var(--muted-soft); font-size:12px; }
-  .gallery-cell img{ width:100%; height:100%; object-fit:cover; }
+  .gallery-cell{ position:relative; aspect-ratio:4/3.3; background:var(--bg-swatch); border-radius:8px; overflow:hidden; display:flex; align-items:center; justify-content:center; color:var(--muted-soft); font-size:12px; }
+  .gallery-cell img{ width:100%; height:100%; object-fit:cover; cursor:zoom-in; }
+
+  /* ---------- image zoom lens ---------- */
+  .zoom-lens{
+    position:absolute; display:none; pointer-events:none;
+    border:2px solid rgba(255,255,255,0.85);
+    background:rgba(255,255,255,0.25);
+    box-shadow:0 0 0 1px rgba(0,0,0,0.25), inset 0 0 0 1px rgba(0,0,0,0.1);
+    border-radius:4px;
+  }
+  .zoom-result{
+    position:fixed; display:none; pointer-events:none;
+    background-color:#fff; background-repeat:no-repeat;
+    border:1px solid var(--border-warm); border-radius:8px;
+    box-shadow:0 20px 48px rgba(0,0,0,0.22);
+    z-index:80;
+  }
+  @media (max-width:1100px), (hover:none){
+    .zoom-lens, .zoom-result{ display:none !important; }
+  }
 
   /* ---------- related ---------- */
   .related-section{ padding:0 0 72px; }
@@ -762,12 +781,106 @@
   function selectDelivery(i){ state.delivery = i; renderAll(); }
   function selectPayment(i){ state.payment = i; renderAll(); }
 
+  // ---------- image zoom lens ----------
+  function attachZoomLens(container, getImg){
+    if (!container) return;
+    var LENS = 130;
+    var RESULT = 380;
+    var lens = null, result = null;
+
+    function ensure(){
+      if (!lens){
+        lens = document.createElement('div');
+        lens.className = 'zoom-lens';
+        lens.setAttribute('aria-hidden', 'true');
+      }
+      if (!result){
+        result = document.createElement('div');
+        result.className = 'zoom-result';
+        result.setAttribute('aria-hidden', 'true');
+        document.body.appendChild(result);
+      }
+    }
+
+    function hide(){
+      if (lens) lens.style.display = 'none';
+      if (result) result.style.display = 'none';
+    }
+
+    function update(img, clientX, clientY){
+      ensure();
+      if (lens.parentElement !== img.parentElement) img.parentElement.appendChild(lens);
+      var rect = img.getBoundingClientRect();
+      if (rect.width < 60 || rect.height < 60 || !img.naturalWidth){ hide(); return; }
+
+      var x = clientX - rect.left;
+      var y = clientY - rect.top;
+      if (x < 0 || y < 0 || x > rect.width || y > rect.height){ hide(); return; }
+      var half = LENS / 2;
+      x = Math.max(half, Math.min(x, rect.width - half));
+      y = Math.max(half, Math.min(y, rect.height - half));
+
+      lens.style.width = LENS + 'px';
+      lens.style.height = LENS + 'px';
+      lens.style.left = (x - half) + 'px';
+      lens.style.top = (y - half) + 'px';
+      lens.style.display = 'block';
+
+      var natW = img.naturalWidth, natH = img.naturalHeight;
+      var coverScale = Math.max(rect.width / natW, rect.height / natH);
+      var offsetX = (natW - rect.width / coverScale) / 2;
+      var offsetY = (natH - rect.height / coverScale) / 2;
+      var finalScale = coverScale * (RESULT / LENS);
+
+      var natX = offsetX + (x - half) / coverScale;
+      var natY = offsetY + (y - half) / coverScale;
+
+      if (result.getAttribute('data-src') !== img.src){
+        result.style.backgroundImage = 'url(' + img.src + ')';
+        result.setAttribute('data-src', img.src);
+      }
+      result.style.backgroundSize = (natW * finalScale) + 'px ' + (natH * finalScale) + 'px';
+      result.style.backgroundPosition = (-natX * finalScale) + 'px ' + (-natY * finalScale) + 'px';
+
+      var margin = 16;
+      var left = rect.right + margin;
+      if (left + RESULT > window.innerWidth - 8){
+        left = rect.left - margin - RESULT;
+        if (left < 8) left = Math.max(8, window.innerWidth - RESULT - 8);
+      }
+      var top = rect.top;
+      if (top + RESULT > window.innerHeight - 8) top = Math.max(8, window.innerHeight - RESULT - 8);
+
+      result.style.left = left + 'px';
+      result.style.top = top + 'px';
+      result.style.width = RESULT + 'px';
+      result.style.height = RESULT + 'px';
+      result.style.display = 'block';
+    }
+
+    container.addEventListener('mousemove', function(e){
+      var img = getImg(e.target);
+      if (!img || !img.src){ hide(); return; }
+      update(img, e.clientX, e.clientY);
+    });
+    container.addEventListener('mouseleave', hide);
+    window.addEventListener('scroll', hide, true);
+  }
+
   // ---------- static one-time listeners ----------
   document.getElementById('qtyInc').addEventListener('click', incQty);
   document.getElementById('qtyDec').addEventListener('click', decQty);
   document.getElementById('addToCartBtn').addEventListener('click', addToCart);
   document.getElementById('buyNowBtn').addEventListener('click', buyNow);
   document.getElementById('wishMainBtn').addEventListener('click', toggleWishlistMain);
+
+  attachZoomLens(document.getElementById('mainPhoto'), function(){
+    return document.querySelector('#mainPhoto img');
+  });
+  attachZoomLens(document.getElementById('galleryRow'), function(target){
+    var cell = target && target.closest ? target.closest('.gallery-cell') : null;
+    return cell ? cell.querySelector('img') : null;
+  });
 
   function openCartHandler(){ openCart(); }
   function openWishlistHandler(){ openWishlist(); }

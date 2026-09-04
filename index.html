@@ -64,9 +64,13 @@
   .thumb.active{ border-color:var(--sage-soft); }
   .thumb span{ font-size:9px; color:var(--muted-soft); }
   .thumb img{ width:100%; height:100%; object-fit:cover; border-radius:2px; }
+  .thumb.empty{ font-size:9px; color:var(--muted-soft); text-align:center; }
 
   .main-image{ position:relative; aspect-ratio:1/1.05; background:var(--bg-swatch); border-radius:8px; overflow:hidden; }
-  .main-image img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
+  .main-photo{ position:absolute; inset:0; }
+  .main-photo img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
+  .main-photo .ph{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; flex-direction:column; color:var(--muted-soft); text-align:center; }
+  .main-photo .ph b{ display:block; font-size:13px; letter-spacing:0.05em; font-weight:500; }
   .image-view-label{ position:absolute; bottom:12px; right:12px; background:rgba(0,0,0,0.55); color:#fff; font-size:11px; padding:4px 8px; border-radius:3px; }
   .sale-flag{ position:absolute; top:16px; left:16px; background:var(--sale); color:#fff; font-size:11px; letter-spacing:0.02em; padding:6px 10px; border-radius:3px; }
 
@@ -117,7 +121,7 @@
 
   /* ---------- gallery ---------- */
   .gallery-row{ display:grid; grid-template-columns:repeat(3,1fr); gap:20px; padding:0 0 64px; }
-  .gallery-cell{ aspect-ratio:4/3.3; background:var(--bg-swatch); border-radius:8px; overflow:hidden; }
+  .gallery-cell{ aspect-ratio:4/3.3; background:var(--bg-swatch); border-radius:8px; overflow:hidden; display:flex; align-items:center; justify-content:center; color:var(--muted-soft); font-size:12px; }
   .gallery-cell img{ width:100%; height:100%; object-fit:cover; }
 
   /* ---------- related ---------- */
@@ -127,7 +131,11 @@
   .related-head .see-all{ font-size:13px; color:var(--sage); font-weight:600; }
   .related-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:24px; }
   @media (max-width:820px){ .related-grid{ grid-template-columns:repeat(2,1fr); } }
-  .rcard-img{ aspect-ratio:1/1; background:var(--bg-swatch); border-radius:8px; display:flex; align-items:center; justify-content:center; color:var(--muted-soft); font-size:12px; position:relative; margin-bottom:12px; }
+  .rcard-img{ aspect-ratio:1/1; background:var(--bg-swatch); border-radius:8px; display:flex; align-items:center; justify-content:center; color:var(--muted-soft); font-size:12px; position:relative; margin-bottom:12px; overflow:hidden; cursor:pointer; }
+  .rcard-img img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
+  .rcard-name{ cursor:pointer; }
+  .rcard-name:hover{ color:var(--sage); }
+  .rcard-noreview{ color:var(--muted-soft); font-size:11px; margin-bottom:6px; }
   .rcard-off{ position:absolute; top:10px; left:10px; background:var(--ink); color:#fff; font-size:10px; padding:4px 8px; border-radius:3px; }
   .rcard-wish{ position:absolute; top:10px; right:10px; width:30px; height:30px; border-radius:50%; background:#fff; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:14px; box-shadow:0 2px 6px rgba(0,0,0,0.08); border:none; }
   .rcard-name{ font-size:14px; font-weight:600; margin-bottom:4px; }
@@ -268,7 +276,7 @@
     <div class="thumbs" id="thumbs"></div>
 
     <div class="main-image">
-      <img id="mainImage" alt="" />
+      <div class="main-photo" id="mainPhoto"></div>
       <div class="sale-flag" id="mainSaleFlag" hidden></div>
       <div class="image-view-label" id="imageViewLabel"></div>
     </div>
@@ -277,7 +285,7 @@
       <div class="sale-pill" id="infoSalePill" hidden></div>
       <h1 id="productName"></h1>
       <div class="rating">
-        <span class="stars">&#9733;&#9733;&#9733;&#9734;&#9734;</span>
+        <span class="stars" id="mainStars"></span>
         <span id="ratingValue"></span>
         <span id="reviewCount"></span>
       </div>
@@ -394,39 +402,73 @@
 (function(){
   "use strict";
 
-  var PRODUCT = {
-    id: 'p1',
-    name: 'Muscle Relaxation TPE Fascia Ball – Magnetic Hedgehog Peanut Shape for Foot Massage & Yoga Arch Support',
-    category: 'Yoga Balls', sku: 'D Fascia Ball',
-    price: 58.19, priceMin: 58.19, priceMax: 126.07,
-    rating: 5.0, reviewCount: 1, sale: false,
-    shortDescription: 'TPE fascia ball in a magnetic hedgehog peanut shape — soft yet durable, with a diameter up to 4.9in, for foot massage and yoga arch support.',
-    longDescription: 'The TPE material ensures a soft yet durable surface, providing a comfortable and effective massage experience. A diameter of up to 4.9 inches allows for versatile use, suitable for both foot massage and yoga arch support.',
-    benefits: [
-      { label: 'Soft, durable TPE material' },
-      { label: 'Diameter up to 4.9in — versatile use' },
-      { label: 'Magnetic hedgehog design for muscle relaxation' }
-    ],
-    images: [
-      'https://s.alicdn.com/@sc04/kf/Hff62777fde1e41f5a7270aaa8fe9021bL.png_960x960q80.jpg',
-      'https://s.alicdn.com/@sc04/kf/H6e5864be98f44385b09c467bf9a74c63G.png_960x960q80.jpg',
-      'https://s.alicdn.com/@sc04/kf/Ha2d056f1103544fb9566259fc2b81c827.png_960x960q80.jpg',
-      'https://s.alicdn.com/@sc04/kf/H236d23dbaed242ddae31c78d3a1a8b014.png_960x960q80.jpg',
-      'https://s.alicdn.com/@sc04/kf/H2494ecb93e994a758b5137cbd9fafc14j.png_960x960q80.jpg'
-    ]
-  };
-  var RELATED = [
-    { id: 'p2', name: 'Bamboo toothbrushes', price: 40, mrp: 45, sale: true, discountPct: 31 },
-    { id: 'p3', name: 'Eco friendly bags', price: 40, mrp: 45, sale: true, discountPct: 31 },
-    { id: 'p4', name: 'Wooden Water Bottles', price: 40, mrp: 45, sale: true, discountPct: 11 },
-    { id: 'p5', name: 'Wooden Cup', price: 40, mrp: 45, sale: true, discountPct: 31 }
+  var CATALOG = [
+    {
+      id: 'p1',
+      name: 'Muscle Relaxation TPE Fascia Ball – Magnetic Hedgehog Peanut Shape for Foot Massage & Yoga Arch Support',
+      category: 'Yoga Balls', sku: 'D Fascia Ball',
+      price: 58.19, priceMin: 58.19, priceMax: 126.07,
+      rating: 5.0, reviewCount: 1, sale: false,
+      shortDescription: 'TPE fascia ball in a magnetic hedgehog peanut shape — soft yet durable, with a diameter up to 4.9in, for foot massage and yoga arch support.',
+      longDescription: 'The TPE material ensures a soft yet durable surface, providing a comfortable and effective massage experience. A diameter of up to 4.9 inches allows for versatile use, suitable for both foot massage and yoga arch support.',
+      benefits: [
+        { label: 'Soft, durable TPE material' },
+        { label: 'Diameter up to 4.9in — versatile use' },
+        { label: 'Magnetic hedgehog design for muscle relaxation' }
+      ],
+      images: [
+        'https://s.alicdn.com/@sc04/kf/Hff62777fde1e41f5a7270aaa8fe9021bL.png_960x960q80.jpg',
+        'https://s.alicdn.com/@sc04/kf/H6e5864be98f44385b09c467bf9a74c63G.png_960x960q80.jpg',
+        'https://s.alicdn.com/@sc04/kf/Ha2d056f1103544fb9566259fc2b81c827.png_960x960q80.jpg',
+        'https://s.alicdn.com/@sc04/kf/H236d23dbaed242ddae31c78d3a1a8b014.png_960x960q80.jpg',
+        'https://s.alicdn.com/@sc04/kf/H2494ecb93e994a758b5137cbd9fafc14j.png_960x960q80.jpg'
+      ],
+      colors: [
+        { name: 'Pink', image: 'https://s.alicdn.com/@sc04/kf/H8fd3b829f11d41eab19c1c1551cd4fb6p.png' },
+        { name: 'Blue', image: 'https://s.alicdn.com/@sc04/kf/H8a291d3ce48a466e994784d69b9fde5dL.png' },
+        { name: 'Orange', image: 'https://s.alicdn.com/@sc04/kf/Hbe04432aa43d46c79aca7ea96f5353b9P.png' },
+        { name: 'Beige', image: 'https://s.alicdn.com/@sc04/kf/H22fb9b1b7d9c492daf3f777d64db8e5e6.png' }
+      ]
+    },
+    {
+      id: 'p2',
+      name: 'Al Foot Massage Fascia Ball Massager Yoga Relaxing Muscles Arch Trainer Fitness Exercise Cross-border Drop Shipping',
+      category: 'Foam Rollers', sku: 'Al Foot Massage',
+      price: 96.01, priceMin: 96.01, priceMax: 134.80,
+      rating: 0, reviewCount: 0, sale: false,
+      shortDescription: 'TPE fascia ball massager for relaxing muscles — soft yet durable with medium firmness for balanced-pressure massage.',
+      longDescription: 'The TPE material ensures a soft yet durable construction, providing a comfortable and long-lasting massage experience. With medium firmness, the massager offers balanced pressure that is effective for muscle relaxation without causing discomfort.',
+      benefits: [
+        { label: 'Soft, durable TPE construction' },
+        { label: 'Medium firmness for balanced pressure' },
+        { label: 'Manual included for proper usage' }
+      ],
+      images: [
+        'https://s.alicdn.com/@sc04/kf/Hb99c50ab12444e6e844d7b57d930c479Y.png_960x960q80.jpg',
+        'https://s.alicdn.com/@sc04/kf/He23910a0af5240da8761c1ff4ba3fddcg.png_960x960q80.jpg',
+        'https://s.alicdn.com/@sc04/kf/H9df29a749fb14416b2bcdb399a626b04j.png_960x960q80.jpg',
+        'https://s.alicdn.com/@sc04/kf/H9b45e83250564f869d7a1f09a2fba8326.png_960x960q80.jpg',
+        'https://s.alicdn.com/@sc04/kf/H2fc7d41187bb43a7841dd6b6ae9549e9u.png_960x960q80.jpg'
+      ],
+      colors: [
+        { name: 'Dusk Gray', image: 'https://s.alicdn.com/@sc04/kf/Ha23c5ce3ef03490f8c4cb9aa2a9f02f5l.png' },
+        { name: 'Wilderness Green', image: 'https://s.alicdn.com/@sc04/kf/H14d4ea8bcf85447aad2d4b43ee57ca73x.png' },
+        { name: 'Misty Purple', image: 'https://s.alicdn.com/@sc04/kf/Hf81ef9da087f4cb5b4fe4f5e26780d40Q.png' },
+        { name: 'Cloudy Pink', image: 'https://s.alicdn.com/@sc04/kf/H0c15c5bb09d14feaabfdb1aee7bcdce0W.png' }
+      ]
+    },
+    { id: 'p3', name: 'Eco friendly bags', category: 'General', sku: 'N/A', price: 40, mrp: 45, sale: true, discountPct: 31, rating: 0, reviewCount: 0,
+      shortDescription: 'Product details coming soon.', longDescription: 'Product details coming soon.', benefits: [], images: [], colors: null },
+    { id: 'p4', name: 'Wooden Water Bottles', category: 'General', sku: 'N/A', price: 40, mrp: 45, sale: true, discountPct: 11, rating: 0, reviewCount: 0,
+      shortDescription: 'Product details coming soon.', longDescription: 'Product details coming soon.', benefits: [], images: [], colors: null },
+    { id: 'p5', name: 'Wooden Cup', category: 'General', sku: 'N/A', price: 40, mrp: 45, sale: true, discountPct: 31, rating: 0, reviewCount: 0,
+      shortDescription: 'Product details coming soon.', longDescription: 'Product details coming soon.', benefits: [], images: [], colors: null }
   ];
-  var CATALOG = [PRODUCT].concat(RELATED);
-  var COLORS = [
-    { name: 'Pink', image: 'https://s.alicdn.com/@sc04/kf/H8fd3b829f11d41eab19c1c1551cd4fb6p.png' },
-    { name: 'Blue', image: 'https://s.alicdn.com/@sc04/kf/H8a291d3ce48a466e994784d69b9fde5dL.png' },
-    { name: 'Orange', image: 'https://s.alicdn.com/@sc04/kf/Hbe04432aa43d46c79aca7ea96f5353b9P.png' },
-    { name: 'Beige', image: 'https://s.alicdn.com/@sc04/kf/H22fb9b1b7d9c492daf3f777d64db8e5e6.png' }
+  var DEFAULT_COLORS = [
+    { name: 'Charcoal', hex: '#1F1F1F' },
+    { name: 'Sky', hex: '#7FA8D9' },
+    { name: 'Sage', hex: '#4F7C6B' },
+    { name: 'Sand', hex: '#D9D5C8' }
   ];
   var STEP_TITLES = ['Your Details', 'Delivery Method', 'Payment', 'Order Confirmation'];
 
@@ -440,9 +482,17 @@
       return { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c];
     });
   }
+  function starsHtml(rating, reviewCount){
+    if (!reviewCount){ return '&#9734;&#9734;&#9734;&#9734;&#9734;'; }
+    var filled = Math.round(rating);
+    var out = '';
+    for (var i = 0; i < 5; i++) out += (i < filled ? '&#9733;' : '&#9734;');
+    return out;
+  }
 
   var state = {
     qty: 1, selectedImage: 0, selectedColor: 0,
+    slots: { main: 'p1', related: ['p2', 'p3', 'p4', 'p5'] },
     cart: [], wishlist: [],
     cartOpen: false, wishlistOpen: false,
     checkout: null, // {mode, items:[{id,qty}], step}
@@ -450,6 +500,8 @@
     delivery: 0, payment: 0, order: null, toast: ''
   };
   var toastTimer = null;
+
+  function mainProduct(){ return findProduct(state.slots.main); }
 
   function showToast(msg){
     state.toast = msg;
@@ -460,15 +512,17 @@
 
   // ---------- actions ----------
   function addToCart(){
+    var p = mainProduct();
     var existing = null;
-    for (var i = 0; i < state.cart.length; i++) if (state.cart[i].id === PRODUCT.id) existing = state.cart[i];
+    for (var i = 0; i < state.cart.length; i++) if (state.cart[i].id === p.id) existing = state.cart[i];
     if (existing) existing.qty += state.qty;
-    else state.cart.push({ id: PRODUCT.id, qty: state.qty });
-    showToast(PRODUCT.name + ' added to cart');
+    else state.cart.push({ id: p.id, qty: state.qty });
+    showToast(p.name + ' added to cart');
     renderAll();
   }
   function buyNow(){
-    state.checkout = { mode: 'buynow', items: [{ id: PRODUCT.id, qty: state.qty }], step: 0 };
+    var p = mainProduct();
+    state.checkout = { mode: 'buynow', items: [{ id: p.id, qty: state.qty }], step: 0 };
     state.form = { fullName: '', mobile: '', email: '', address: '', city: '', state: '', pin: '' };
     state.delivery = 0; state.payment = 0; state.order = null;
     renderAll();
@@ -503,14 +557,27 @@
   function selectColor(i){ state.selectedColor = i; renderAll(); }
 
   function toggleWishlistMain(){
-    var idx = state.wishlist.indexOf(PRODUCT.id);
-    if (idx >= 0) state.wishlist.splice(idx, 1); else state.wishlist.push(PRODUCT.id);
+    var id = mainProduct().id;
+    var idx = state.wishlist.indexOf(id);
+    if (idx >= 0) state.wishlist.splice(idx, 1); else state.wishlist.push(id);
     renderAll();
   }
   function toggleWishlist(id){
     var idx = state.wishlist.indexOf(id);
     if (idx >= 0) state.wishlist.splice(idx, 1); else state.wishlist.push(id);
     renderAll();
+  }
+  function swapToMain(index){
+    var newMainId = state.slots.related[index];
+    var oldMainId = state.slots.main;
+    state.slots.related[index] = oldMainId;
+    state.slots.main = newMainId;
+    state.selectedImage = 0;
+    state.selectedColor = 0;
+    renderAll();
+    showToast(findProduct(newMainId).name + ' is now the featured product');
+    var top = document.querySelector('.product-grid');
+    if (top && top.scrollIntoView) top.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
   function addRelatedToCart(id){
     var existing = null;
@@ -550,41 +617,7 @@
   function selectDelivery(i){ state.delivery = i; renderAll(); }
   function selectPayment(i){ state.payment = i; renderAll(); }
 
-  // ---------- static one-time fields ----------
-  document.getElementById('bcCategory').textContent = PRODUCT.category;
-  document.getElementById('productName').textContent = PRODUCT.name;
-  document.getElementById('ratingValue').textContent = PRODUCT.rating.toFixed(1) + ' Rating';
-  document.getElementById('reviewCount').textContent = '(' + PRODUCT.reviewCount + ' customer review' + (PRODUCT.reviewCount === 1 ? '' : 's') + ')';
-  document.getElementById('shortDesc').textContent = PRODUCT.shortDescription;
-  document.getElementById('priceNow').textContent = PRODUCT.priceMin != null
-    ? '₹' + money(PRODUCT.priceMin) + ' – ₹' + money(PRODUCT.priceMax)
-    : '₹' + money(PRODUCT.price);
-  document.getElementById('priceMrp').hidden = true;
-  document.getElementById('metaSku').textContent = PRODUCT.sku;
-  document.getElementById('metaCategory').textContent = PRODUCT.category;
-  document.getElementById('reviewsTab').textContent = 'Reviews (' + PRODUCT.reviewCount + ')';
-  document.getElementById('descName').textContent = PRODUCT.name;
-  document.getElementById('descLong').textContent = PRODUCT.longDescription;
-
-  var mainSaleFlag = document.getElementById('mainSaleFlag');
-  var infoSalePill = document.getElementById('infoSalePill');
-  if (PRODUCT.sale && PRODUCT.mrp){
-    var discountPct = Math.round((1 - PRODUCT.price / PRODUCT.mrp) * 100);
-    var saleFlagHtml = 'SALE ' + discountPct + '% Off';
-    mainSaleFlag.hidden = false; mainSaleFlag.textContent = saleFlagHtml;
-    infoSalePill.hidden = false; infoSalePill.textContent = saleFlagHtml;
-  }
-
-  var benefitsEl = document.getElementById('benefits');
-  benefitsEl.innerHTML = PRODUCT.benefits.map(function(b){
-    return '<div class="benefit"><span class="tick">&#10003;</span>' + esc(b.label) + '</div>';
-  }).join('');
-
-  var galleryRowEl = document.getElementById('galleryRow');
-  galleryRowEl.innerHTML = PRODUCT.images.map(function(src, i){
-    return '<div class="gallery-cell"><img src="' + src + '" alt="' + esc(PRODUCT.name) + ' photo ' + (i + 1) + '" loading="lazy" /></div>';
-  }).join('');
-
+  // ---------- static one-time listeners ----------
   document.getElementById('qtyInc').addEventListener('click', incQty);
   document.getElementById('qtyDec').addEventListener('click', decQty);
   document.getElementById('addToCartBtn').addEventListener('click', addToCart);
@@ -605,24 +638,85 @@
   });
 
   // ---------- dynamic renders ----------
+  function renderProductInfo(){
+    var p = mainProduct();
+    document.getElementById('bcCategory').textContent = p.category;
+    document.getElementById('productName').textContent = p.name;
+    document.getElementById('mainStars').innerHTML = starsHtml(p.rating, p.reviewCount);
+    document.getElementById('ratingValue').textContent = p.reviewCount ? p.rating.toFixed(1) + ' Rating' : 'No ratings yet';
+    document.getElementById('reviewCount').textContent = p.reviewCount
+      ? '(' + p.reviewCount + ' customer review' + (p.reviewCount === 1 ? '' : 's') + ')'
+      : '';
+    document.getElementById('shortDesc').textContent = p.shortDescription;
+    document.getElementById('priceNow').textContent = p.priceMin != null
+      ? '₹' + money(p.priceMin) + ' – ₹' + money(p.priceMax)
+      : '₹' + money(p.price);
+    var priceMrpEl = document.getElementById('priceMrp');
+    if (p.priceMin == null && p.sale && p.mrp){
+      priceMrpEl.hidden = false; priceMrpEl.textContent = '₹' + money(p.mrp);
+    } else {
+      priceMrpEl.hidden = true; priceMrpEl.textContent = '';
+    }
+    document.getElementById('metaSku').textContent = p.sku;
+    document.getElementById('metaCategory').textContent = p.category;
+    document.getElementById('reviewsTab').textContent = 'Reviews (' + p.reviewCount + ')';
+    document.getElementById('descName').textContent = p.name;
+    document.getElementById('descLong').textContent = p.longDescription;
+
+    var mainSaleFlag = document.getElementById('mainSaleFlag');
+    var infoSalePill = document.getElementById('infoSalePill');
+    if (p.priceMin == null && p.sale && p.mrp){
+      var discountPct = Math.round((1 - p.price / p.mrp) * 100);
+      var saleFlagHtml = 'SALE ' + discountPct + '% Off';
+      mainSaleFlag.hidden = false; mainSaleFlag.textContent = saleFlagHtml;
+      infoSalePill.hidden = false; infoSalePill.textContent = saleFlagHtml;
+    } else {
+      mainSaleFlag.hidden = true; mainSaleFlag.textContent = '';
+      infoSalePill.hidden = true; infoSalePill.textContent = '';
+    }
+
+    var benefitsEl = document.getElementById('benefits');
+    benefitsEl.innerHTML = (p.benefits || []).map(function(b){
+      return '<div class="benefit"><span class="tick">&#10003;</span>' + esc(b.label) + '</div>';
+    }).join('');
+
+    var galleryRowEl = document.getElementById('galleryRow');
+    var galleryImages = p.images || [];
+    galleryRowEl.innerHTML = galleryImages.length
+      ? galleryImages.map(function(src, i){
+          return '<div class="gallery-cell"><img src="' + src + '" alt="' + esc(p.name) + ' photo ' + (i + 1) + '" loading="lazy" /></div>';
+        }).join('')
+      : '<div class="gallery-cell">PRODUCT PHOTO</div>';
+  }
+
   function renderThumbs(){
+    var p = mainProduct();
+    var images = p.images || [];
     var el = document.getElementById('thumbs');
-    el.innerHTML = PRODUCT.images.map(function(src, i){
-      return '<div class="thumb' + (state.selectedImage === i ? ' active' : '') + '" data-i="' + i + '"><img src="' + src + '" alt="' + esc(PRODUCT.name) + ' thumbnail ' + (i + 1) + '" loading="lazy" /></div>';
+    el.innerHTML = images.map(function(src, i){
+      return '<div class="thumb' + (state.selectedImage === i ? ' active' : '') + '" data-i="' + i + '"><img src="' + src + '" alt="' + esc(p.name) + ' thumbnail ' + (i + 1) + '" loading="lazy" /></div>';
     }).join('');
     Array.prototype.forEach.call(el.querySelectorAll('.thumb'), function(node){
       node.addEventListener('click', function(){ selectImage(parseInt(node.getAttribute('data-i'), 10)); });
     });
-    var mainImg = document.getElementById('mainImage');
-    mainImg.src = PRODUCT.images[state.selectedImage];
-    mainImg.alt = PRODUCT.name;
-    document.getElementById('imageViewLabel').textContent = 'View ' + (state.selectedImage + 1) + ' of ' + PRODUCT.images.length;
+    var mainPhoto = document.getElementById('mainPhoto');
+    if (images.length){
+      mainPhoto.innerHTML = '<img src="' + images[state.selectedImage] + '" alt="' + esc(p.name) + '" />';
+      document.getElementById('imageViewLabel').textContent = 'View ' + (state.selectedImage + 1) + ' of ' + images.length;
+      document.getElementById('imageViewLabel').hidden = false;
+    } else {
+      mainPhoto.innerHTML = '<div class="ph"><b>PRODUCT PHOTO</b></div>';
+      document.getElementById('imageViewLabel').hidden = true;
+    }
   }
 
   function renderSwatches(){
+    var p = mainProduct();
+    var colors = (p.colors && p.colors.length) ? p.colors : DEFAULT_COLORS;
     var el = document.getElementById('swatches');
-    el.innerHTML = COLORS.map(function(c, i){
-      return '<div class="swatch' + (state.selectedColor === i ? ' active' : '') + '" data-i="' + i + '" title="' + esc(c.name) + '" style="background-image:url(\'' + c.image + '\');"></div>';
+    el.innerHTML = colors.map(function(c, i){
+      var bg = c.image ? "background-image:url('" + c.image + "');" : 'background-color:' + c.hex + ';';
+      return '<div class="swatch' + (state.selectedColor === i ? ' active' : '') + '" data-i="' + i + '" title="' + esc(c.name) + '" style="' + bg + '"></div>';
     }).join('');
     Array.prototype.forEach.call(el.querySelectorAll('.swatch'), function(node){
       node.addEventListener('click', function(){ selectColor(parseInt(node.getAttribute('data-i'), 10)); });
@@ -632,7 +726,7 @@
   function renderQty(){ document.getElementById('qtyVal').textContent = state.qty; }
 
   function renderWishMainBtn(){
-    var on = state.wishlist.indexOf(PRODUCT.id) >= 0;
+    var on = state.wishlist.indexOf(mainProduct().id) >= 0;
     var btn = document.getElementById('wishMainBtn');
     btn.classList.toggle('active', on);
     document.getElementById('wishMainIcon').innerHTML = on ? '&#9829;' : '&#9825;';
@@ -640,26 +734,41 @@
 
   function renderRelated(){
     var el = document.getElementById('relatedGrid');
-    el.innerHTML = RELATED.map(function(r){
+    el.innerHTML = state.slots.related.map(function(id, idx){
+      var r = findProduct(id);
       var wished = state.wishlist.indexOf(r.id) >= 0;
+      var photoHtml = (r.images && r.images.length)
+        ? '<img src="' + r.images[0] + '" alt="' + esc(r.name) + '" />'
+        : 'PRODUCT PHOTO';
+      var priceHtml = r.priceMin != null
+        ? '<span class="now">₹' + money(r.priceMin) + ' – ₹' + money(r.priceMax) + '</span>'
+        : (r.sale && r.mrp
+            ? '<span class="mrp">₹' + money(r.mrp) + '</span><span class="now">₹' + money(r.price) + '</span>'
+            : '<span class="now">₹' + money(r.price) + '</span>');
+      var starsRow = r.reviewCount
+        ? '<div class="rcard-stars">' + starsHtml(r.rating, r.reviewCount) + '</div>'
+        : '<div class="rcard-noreview">No reviews yet</div>';
       return '' +
         '<div>' +
-          '<div class="rcard-img" data-role="wish-wrap" data-id="' + r.id + '">' +
-            'PRODUCT PHOTO' +
-            (r.sale ? '<div class="rcard-off">-' + r.discountPct + '%</div>' : '') +
+          '<div class="rcard-img" data-role="swap" data-idx="' + idx + '">' +
+            photoHtml +
+            (r.sale && !r.priceMin && r.discountPct ? '<div class="rcard-off">-' + r.discountPct + '%</div>' : '') +
             '<button class="rcard-wish" type="button" data-role="wish-btn" data-id="' + r.id + '" aria-label="Toggle wishlist">' + (wished ? '&#9829;' : '&#9825;') + '</button>' +
           '</div>' +
-          '<div class="rcard-name">' + esc(r.name) + '</div>' +
-          '<div class="rcard-stars">&#9733;&#9733;&#9733;&#9734;&#9734;</div>' +
-          '<div class="rcard-price"><span class="mrp">₹' + money(r.mrp) + '</span><span class="now">₹' + money(r.price) + '</span></div>' +
+          '<div class="rcard-name" data-role="swap" data-idx="' + idx + '">' + esc(r.name) + '</div>' +
+          starsRow +
+          '<div class="rcard-price">' + priceHtml + '</div>' +
           '<button class="rcard-add" type="button" data-role="add-cart" data-id="' + r.id + '">Add to Cart</button>' +
         '</div>';
     }).join('');
     Array.prototype.forEach.call(el.querySelectorAll('[data-role="wish-btn"]'), function(node){
-      node.addEventListener('click', function(){ toggleWishlist(node.getAttribute('data-id')); });
+      node.addEventListener('click', function(e){ e.stopPropagation(); toggleWishlist(node.getAttribute('data-id')); });
     });
     Array.prototype.forEach.call(el.querySelectorAll('[data-role="add-cart"]'), function(node){
-      node.addEventListener('click', function(){ addRelatedToCart(node.getAttribute('data-id')); });
+      node.addEventListener('click', function(e){ e.stopPropagation(); addRelatedToCart(node.getAttribute('data-id')); });
+    });
+    Array.prototype.forEach.call(el.querySelectorAll('[data-role="swap"]'), function(node){
+      node.addEventListener('click', function(){ swapToMain(parseInt(node.getAttribute('data-idx'), 10)); });
     });
   }
 
@@ -892,6 +1001,7 @@
   }
 
   function renderAll(){
+    renderProductInfo();
     renderThumbs();
     renderSwatches();
     renderQty();

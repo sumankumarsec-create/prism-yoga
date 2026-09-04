@@ -63,11 +63,11 @@
   .thumb{ width:56px; height:56px; display:flex; align-items:center; justify-content:center; background:var(--bg-swatch-warm); cursor:pointer; border:2px solid transparent; border-radius:2px; }
   .thumb.active{ border-color:var(--sage-soft); }
   .thumb span{ font-size:9px; color:var(--muted-soft); }
+  .thumb img{ width:100%; height:100%; object-fit:cover; border-radius:2px; }
 
-  .main-image{ position:relative; aspect-ratio:1/1.05; background:var(--bg-swatch); border-radius:8px; display:flex; align-items:center; justify-content:center; }
-  .main-image .ph{ text-align:center; color:var(--muted-soft); }
-  .main-image .ph b{ display:block; font-size:13px; letter-spacing:0.05em; font-weight:500; }
-  .main-image .ph small{ display:block; font-size:12px; margin-top:4px; }
+  .main-image{ position:relative; aspect-ratio:1/1.05; background:var(--bg-swatch); border-radius:8px; overflow:hidden; }
+  .main-image img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
+  .image-view-label{ position:absolute; bottom:12px; right:12px; background:rgba(0,0,0,0.55); color:#fff; font-size:11px; padding:4px 8px; border-radius:3px; }
   .sale-flag{ position:absolute; top:16px; left:16px; background:var(--sale); color:#fff; font-size:11px; letter-spacing:0.02em; padding:6px 10px; border-radius:3px; }
 
   .info{ display:flex; flex-direction:column; gap:16px; padding-top:4px; }
@@ -87,7 +87,7 @@
   .stepper button{ width:32px; height:32px; border:none; background:var(--btn-ghost); font-size:15px; cursor:pointer; color:var(--ink); }
   .stepper .val{ width:36px; text-align:center; font-size:14px; }
   .swatches{ display:flex; gap:8px; }
-  .swatch{ width:24px; height:24px; border-radius:50%; cursor:pointer; border:2px solid transparent; box-shadow:0 0 0 1px var(--border-warm); }
+  .swatch{ width:24px; height:24px; border-radius:50%; cursor:pointer; border:2px solid transparent; box-shadow:0 0 0 1px var(--border-warm); background-size:cover; background-position:center; }
   .swatch.active{ border-color:var(--ink-deep); }
 
   .cta-row{ display:flex; gap:12px; margin-top:6px; flex-wrap:wrap; }
@@ -117,7 +117,8 @@
 
   /* ---------- gallery ---------- */
   .gallery-row{ display:grid; grid-template-columns:repeat(3,1fr); gap:20px; padding:0 0 64px; }
-  .gallery-cell{ aspect-ratio:4/3.3; background:var(--bg-swatch); border-radius:8px; display:flex; align-items:center; justify-content:center; color:var(--muted-soft); font-size:12px; }
+  .gallery-cell{ aspect-ratio:4/3.3; background:var(--bg-swatch); border-radius:8px; overflow:hidden; }
+  .gallery-cell img{ width:100%; height:100%; object-fit:cover; }
 
   /* ---------- related ---------- */
   .related-section{ padding:0 0 72px; }
@@ -267,11 +268,9 @@
     <div class="thumbs" id="thumbs"></div>
 
     <div class="main-image">
-      <div class="ph">
-        <b>PRODUCT PHOTO</b>
-        <small id="imageViewLabel"></small>
-      </div>
+      <img id="mainImage" alt="" />
       <div class="sale-flag" id="mainSaleFlag" hidden></div>
+      <div class="image-view-label" id="imageViewLabel"></div>
     </div>
 
     <div class="info">
@@ -396,14 +395,24 @@
   "use strict";
 
   var PRODUCT = {
-    id: 'p1', name: 'Yoga Mats', category: 'Mats', sku: 'PRT584E63A',
-    price: 125.75, mrp: 132.17, rating: 4.7, reviewCount: 5, sale: true,
-    shortDescription: 'A premium non-slip yoga mat with cushioned support, built for daily practice and easy to carry between studio and home.',
-    longDescription: 'Crafted from eco-friendly materials with a textured, non-slip surface on both sides. Lightweight enough to carry to class, thick enough to cushion every pose — built to last through years of daily practice.',
+    id: 'p1',
+    name: 'Muscle Relaxation TPE Fascia Ball – Magnetic Hedgehog Peanut Shape for Foot Massage & Yoga Arch Support',
+    category: 'Yoga Balls', sku: 'D Fascia Ball',
+    price: 58.19, priceMin: 58.19, priceMax: 126.07,
+    rating: 5.0, reviewCount: 1, sale: false,
+    shortDescription: 'TPE fascia ball in a magnetic hedgehog peanut shape — soft yet durable, with a diameter up to 4.9in, for foot massage and yoga arch support.',
+    longDescription: 'The TPE material ensures a soft yet durable surface, providing a comfortable and effective massage experience. A diameter of up to 4.9 inches allows for versatile use, suitable for both foot massage and yoga arch support.',
     benefits: [
-      { label: 'Biodegradable, renewable materials' },
-      { label: 'Non-slip textured surface' },
-      { label: 'Designed to look great anywhere' }
+      { label: 'Soft, durable TPE material' },
+      { label: 'Diameter up to 4.9in — versatile use' },
+      { label: 'Magnetic hedgehog design for muscle relaxation' }
+    ],
+    images: [
+      'https://s.alicdn.com/@sc04/kf/Hff62777fde1e41f5a7270aaa8fe9021bL.png_960x960q80.jpg',
+      'https://s.alicdn.com/@sc04/kf/H6e5864be98f44385b09c467bf9a74c63G.png_960x960q80.jpg',
+      'https://s.alicdn.com/@sc04/kf/Ha2d056f1103544fb9566259fc2b81c827.png_960x960q80.jpg',
+      'https://s.alicdn.com/@sc04/kf/H236d23dbaed242ddae31c78d3a1a8b014.png_960x960q80.jpg',
+      'https://s.alicdn.com/@sc04/kf/H2494ecb93e994a758b5137cbd9fafc14j.png_960x960q80.jpg'
     ]
   };
   var RELATED = [
@@ -413,7 +422,12 @@
     { id: 'p5', name: 'Wooden Cup', price: 40, mrp: 45, sale: true, discountPct: 31 }
   ];
   var CATALOG = [PRODUCT].concat(RELATED);
-  var COLORS = ['#1F1F1F', '#7FA8D9', '#4F7C6B', '#D9D5C8'];
+  var COLORS = [
+    { name: 'Pink', image: 'https://s.alicdn.com/@sc04/kf/H8fd3b829f11d41eab19c1c1551cd4fb6p.png' },
+    { name: 'Blue', image: 'https://s.alicdn.com/@sc04/kf/H8a291d3ce48a466e994784d69b9fde5dL.png' },
+    { name: 'Orange', image: 'https://s.alicdn.com/@sc04/kf/Hbe04432aa43d46c79aca7ea96f5353b9P.png' },
+    { name: 'Beige', image: 'https://s.alicdn.com/@sc04/kf/H22fb9b1b7d9c492daf3f777d64db8e5e6.png' }
+  ];
   var STEP_TITLES = ['Your Details', 'Delivery Method', 'Payment', 'Order Confirmation'];
 
   function findProduct(id){
@@ -539,22 +553,24 @@
   // ---------- static one-time fields ----------
   document.getElementById('bcCategory').textContent = PRODUCT.category;
   document.getElementById('productName').textContent = PRODUCT.name;
-  document.getElementById('ratingValue').textContent = PRODUCT.rating + ' Rating';
-  document.getElementById('reviewCount').textContent = '(' + PRODUCT.reviewCount + ' customer reviews)';
+  document.getElementById('ratingValue').textContent = PRODUCT.rating.toFixed(1) + ' Rating';
+  document.getElementById('reviewCount').textContent = '(' + PRODUCT.reviewCount + ' customer review' + (PRODUCT.reviewCount === 1 ? '' : 's') + ')';
   document.getElementById('shortDesc').textContent = PRODUCT.shortDescription;
-  document.getElementById('priceNow').textContent = '$' + money(PRODUCT.price);
-  document.getElementById('priceMrp').textContent = '$' + money(PRODUCT.mrp);
+  document.getElementById('priceNow').textContent = PRODUCT.priceMin != null
+    ? '₹' + money(PRODUCT.priceMin) + ' – ₹' + money(PRODUCT.priceMax)
+    : '₹' + money(PRODUCT.price);
+  document.getElementById('priceMrp').hidden = true;
   document.getElementById('metaSku').textContent = PRODUCT.sku;
   document.getElementById('metaCategory').textContent = PRODUCT.category;
   document.getElementById('reviewsTab').textContent = 'Reviews (' + PRODUCT.reviewCount + ')';
   document.getElementById('descName').textContent = PRODUCT.name;
   document.getElementById('descLong').textContent = PRODUCT.longDescription;
 
-  var discountPct = Math.round((1 - PRODUCT.price / PRODUCT.mrp) * 100);
-  var saleFlagHtml = 'SALE ' + discountPct + '% Off';
   var mainSaleFlag = document.getElementById('mainSaleFlag');
   var infoSalePill = document.getElementById('infoSalePill');
-  if (PRODUCT.sale){
+  if (PRODUCT.sale && PRODUCT.mrp){
+    var discountPct = Math.round((1 - PRODUCT.price / PRODUCT.mrp) * 100);
+    var saleFlagHtml = 'SALE ' + discountPct + '% Off';
     mainSaleFlag.hidden = false; mainSaleFlag.textContent = saleFlagHtml;
     infoSalePill.hidden = false; infoSalePill.textContent = saleFlagHtml;
   }
@@ -565,8 +581,8 @@
   }).join('');
 
   var galleryRowEl = document.getElementById('galleryRow');
-  galleryRowEl.innerHTML = [0,1,2,3].map(function(i){
-    return '<div class="gallery-cell">IMG ' + (i+1) + '</div>';
+  galleryRowEl.innerHTML = PRODUCT.images.map(function(src, i){
+    return '<div class="gallery-cell"><img src="' + src + '" alt="' + esc(PRODUCT.name) + ' photo ' + (i + 1) + '" loading="lazy" /></div>';
   }).join('');
 
   document.getElementById('qtyInc').addEventListener('click', incQty);
@@ -591,19 +607,22 @@
   // ---------- dynamic renders ----------
   function renderThumbs(){
     var el = document.getElementById('thumbs');
-    el.innerHTML = [0,1,2,3].map(function(i){
-      return '<div class="thumb' + (state.selectedImage === i ? ' active' : '') + '" data-i="' + i + '"><span>IMG ' + (i+1) + '</span></div>';
+    el.innerHTML = PRODUCT.images.map(function(src, i){
+      return '<div class="thumb' + (state.selectedImage === i ? ' active' : '') + '" data-i="' + i + '"><img src="' + src + '" alt="' + esc(PRODUCT.name) + ' thumbnail ' + (i + 1) + '" loading="lazy" /></div>';
     }).join('');
     Array.prototype.forEach.call(el.querySelectorAll('.thumb'), function(node){
       node.addEventListener('click', function(){ selectImage(parseInt(node.getAttribute('data-i'), 10)); });
     });
-    document.getElementById('imageViewLabel').textContent = 'View ' + (state.selectedImage + 1) + ' of 4';
+    var mainImg = document.getElementById('mainImage');
+    mainImg.src = PRODUCT.images[state.selectedImage];
+    mainImg.alt = PRODUCT.name;
+    document.getElementById('imageViewLabel').textContent = 'View ' + (state.selectedImage + 1) + ' of ' + PRODUCT.images.length;
   }
 
   function renderSwatches(){
     var el = document.getElementById('swatches');
     el.innerHTML = COLORS.map(function(c, i){
-      return '<div class="swatch' + (state.selectedColor === i ? ' active' : '') + '" data-i="' + i + '" style="background:' + c + ';"></div>';
+      return '<div class="swatch' + (state.selectedColor === i ? ' active' : '') + '" data-i="' + i + '" title="' + esc(c.name) + '" style="background-image:url(\'' + c.image + '\');"></div>';
     }).join('');
     Array.prototype.forEach.call(el.querySelectorAll('.swatch'), function(node){
       node.addEventListener('click', function(){ selectColor(parseInt(node.getAttribute('data-i'), 10)); });
@@ -632,7 +651,7 @@
           '</div>' +
           '<div class="rcard-name">' + esc(r.name) + '</div>' +
           '<div class="rcard-stars">&#9733;&#9733;&#9733;&#9734;&#9734;</div>' +
-          '<div class="rcard-price"><span class="mrp">$' + money(r.mrp) + '</span><span class="now">$' + money(r.price) + '</span></div>' +
+          '<div class="rcard-price"><span class="mrp">₹' + money(r.mrp) + '</span><span class="now">₹' + money(r.price) + '</span></div>' +
           '<button class="rcard-add" type="button" data-role="add-cart" data-id="' + r.id + '">Add to Cart</button>' +
         '</div>';
     }).join('');
@@ -675,7 +694,7 @@
               '<div class="line-photo">PHOTO</div>' +
               '<div class="line-main">' +
                 '<div class="line-name">' + esc(l.name) + '</div>' +
-                '<div class="line-price">$' + money(l.price) + ' each</div>' +
+                '<div class="line-price">₹' + money(l.price) + ' each</div>' +
                 '<div class="line-controls">' +
                   '<div class="line-stepper">' +
                     '<button type="button" data-role="dec" data-id="' + l.id + '">&minus;</button>' +
@@ -685,7 +704,7 @@
                   '<button type="button" class="line-remove" data-role="remove" data-id="' + l.id + '">Remove</button>' +
                 '</div>' +
               '</div>' +
-              '<div class="line-total">$' + l.lineTotal + '</div>' +
+              '<div class="line-total">₹' + l.lineTotal + '</div>' +
             '</div>';
         }).join('');
     host.hidden = false;
@@ -695,9 +714,9 @@
         '<div class="drawer-head"><div class="drawer-title serif">Your Cart</div><button class="drawer-close" type="button" data-role="close" aria-label="Close cart">&times;</button></div>' +
         '<div class="drawer-body">' + linesHtml + '</div>' +
         '<div class="drawer-foot">' +
-          '<div class="sum-row"><span>Subtotal</span><span>$' + money(subtotal) + '</span></div>' +
-          '<div class="sum-row"><span>Shipping</span><span>' + (subtotal > 0 ? 'Calculated at checkout' : '$0.00') + '</span></div>' +
-          '<div class="sum-row total"><span>Total</span><span>$' + money(subtotal) + '</span></div>' +
+          '<div class="sum-row"><span>Subtotal</span><span>₹' + money(subtotal) + '</span></div>' +
+          '<div class="sum-row"><span>Shipping</span><span>' + (subtotal > 0 ? 'Calculated at checkout' : '₹0.00') + '</span></div>' +
+          '<div class="sum-row total"><span>Total</span><span>₹' + money(subtotal) + '</span></div>' +
           '<button class="checkout-btn" type="button" data-role="checkout" style="cursor:' + (count ? 'pointer' : 'not-allowed') + '; opacity:' + (count ? '1' : '0.4') + ';">Checkout (' + count + ' items)</button>' +
         '</div>' +
       '</div>';
@@ -724,7 +743,7 @@
               '<div class="line-photo">PHOTO</div>' +
               '<div class="line-main">' +
                 '<div class="line-name">' + esc(w.name) + '</div>' +
-                '<div class="line-price">$' + money(w.price) + '</div>' +
+                '<div class="line-price">₹' + money(w.price) + '</div>' +
                 '<div class="line-controls">' +
                   '<button type="button" class="line-move" data-role="move" data-id="' + w.id + '">Move to Cart</button>' +
                   '<button type="button" class="line-remove" data-role="remove" data-id="' + w.id + '">Remove</button>' +
@@ -757,7 +776,7 @@
     var stepTitle = STEP_TITLES[co.step];
     var nextLabel = co.step === 2 ? 'Place Order' : 'Continue';
     var shippingCost = state.delivery === 1 ? 9.99 : 0;
-    var shippingLabel = shippingCost === 0 ? 'Free' : '$' + money(shippingCost);
+    var shippingLabel = shippingCost === 0 ? 'Free' : '₹' + money(shippingCost);
     var taxNum = subtotalNum * 0.05;
     var totalNum = subtotalNum + shippingCost + taxNum;
 
@@ -783,7 +802,7 @@
     } else if (co.step === 1){
       var dOpts = [
         { label: 'Standard Shipping', eta: '5-7 business days', priceLabel: 'Free' },
-        { label: 'Express Shipping', eta: '1-2 business days', priceLabel: '$9.99' }
+        { label: 'Express Shipping', eta: '1-2 business days', priceLabel: '₹9.99' }
       ];
       leftHtml = '<div class="option-list">' + dOpts.map(function(d, i){
         return '<button type="button" class="option' + (state.delivery === i ? ' active' : '') + '" data-role="delivery" data-i="' + i + '">' +
@@ -824,13 +843,13 @@
       '<div class="order-summary">' +
         '<div class="order-summary-title">Order Summary</div>' +
         items.map(function(it){
-          return '<div class="order-line"><span>' + esc(it.name) + ' &times;' + it.qty + '</span><span>$' + it.lineTotal + '</span></div>';
+          return '<div class="order-line"><span>' + esc(it.name) + ' &times;' + it.qty + '</span><span>₹' + it.lineTotal + '</span></div>';
         }).join('') +
         '<div class="order-divider">' +
-          '<div class="sum-row"><span>Subtotal</span><span>$' + money(subtotalNum) + '</span></div>' +
+          '<div class="sum-row"><span>Subtotal</span><span>₹' + money(subtotalNum) + '</span></div>' +
           '<div class="sum-row"><span>Shipping</span><span>' + shippingLabel + '</span></div>' +
-          '<div class="sum-row"><span>Tax</span><span>$' + money(taxNum) + '</span></div>' +
-          '<div class="order-total"><span>Total</span><span>$' + money(totalNum) + '</span></div>' +
+          '<div class="sum-row"><span>Tax</span><span>₹' + money(taxNum) + '</span></div>' +
+          '<div class="order-total"><span>Total</span><span>₹' + money(totalNum) + '</span></div>' +
         '</div>' +
       '</div>';
 

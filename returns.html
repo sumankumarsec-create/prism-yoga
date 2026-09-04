@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Returns & Exchanges — mooncart</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Spectral:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1F1F1F;
+    --ink-deep:#2A2924;
+    --sage:#4F7C6B;
+    --sage-soft:#7C8B6F;
+    --gold:#F5A623;
+    --border:#ECECEC;
+    --border-warm:#E6E2D8;
+    --muted:#8A877C;
+    --muted-soft:#A6A398;
+    --muted-warm:#5B5A52;
+    --bg:#fff;
+    --bg-alt:#F7F6F2;
+    --bg-panel:#F7F5EF;
+  }
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; }
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'Poppins', sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  a{ color:var(--ink); text-decoration:none; }
+  a:hover{ color:var(--sage); }
+  .serif{ font-family:'Spectral', serif; }
+  .wrap{ max-width:1300px; margin:0 auto; padding-left:40px; padding-right:40px; }
+  @media (max-width:900px){ .wrap{ padding-left:20px; padding-right:20px; } }
+
+  /* header */
+  header{ border-bottom:1px solid var(--border); }
+  .header-row{ display:flex; align-items:center; justify-content:space-between; gap:24px; padding:20px 0; flex-wrap:wrap; }
+  .logo{ font-size:20px; font-weight:700; display:flex; align-items:center; gap:6px; white-space:nowrap; }
+  .back-link{ font-size:13px; font-weight:500; letter-spacing:0.02em; }
+
+  .breadcrumb{ padding:22px 0 0; font-size:13px; color:var(--muted); }
+  .breadcrumb span{ color:var(--ink); }
+
+  .page-hero{ padding:36px 0 8px; }
+  .page-title{ font-size:38px; font-weight:600; margin:0 0 8px; }
+  .page-meta{ font-size:13px; color:var(--muted); }
+
+  .legal{ max-width:760px; padding:28px 0 40px; line-height:1.75; }
+  .legal h2{ font-size:19px; font-weight:600; margin:36px 0 12px; color:var(--ink-deep); }
+  .legal h2:first-of-type{ margin-top:8px; }
+  .legal p{ font-size:14.5px; color:var(--muted-warm); margin:0 0 14px; }
+  .legal ul{ margin:0 0 14px; padding-left:20px; color:var(--muted-warm); font-size:14.5px; }
+  .legal li{ margin-bottom:8px; }
+  .legal a{ color:var(--sage); text-decoration:underline; text-underline-offset:2px; }
+
+  /* step strip */
+  .steps{ display:grid; grid-template-columns:repeat(4,1fr); gap:20px; padding:8px 0 48px; max-width:1080px; }
+  @media (max-width:800px){ .steps{ grid-template-columns:1fr 1fr; } }
+  .step{ background:var(--bg-panel); border:1px solid var(--border-warm); border-radius:10px; padding:22px 20px; }
+  .step-num{ font-family:'Spectral', serif; font-size:26px; font-weight:600; color:var(--sage); margin-bottom:8px; }
+  .step-title{ font-size:14px; font-weight:600; margin-bottom:6px; }
+  .step-body{ font-size:13px; color:var(--muted-warm); line-height:1.6; }
+
+  /* footer */
+  footer{ background:var(--bg-alt); padding:56px 0 28px; margin-top:20px; }
+  .footer-grid{ display:grid; grid-template-columns:1.4fr 1fr 1fr 1fr; gap:32px; }
+  @media (max-width:700px){ .footer-grid{ grid-template-columns:1fr 1fr; } }
+  .footer-brand{ font-size:18px; font-weight:700; margin-bottom:14px; }
+  .footer-addr{ font-size:13px; color:var(--muted); line-height:1.8; }
+  .footer-head{ font-size:14px; font-weight:600; margin-bottom:14px; }
+  .footer-list{ font-size:13px; color:var(--muted); display:flex; flex-direction:column; gap:8px; }
+  .footer-list a{ color:inherit; }
+  .footer-bottom{ margin-top:32px; padding-top:20px; border-top:1px solid var(--border); font-size:12px; color:var(--muted); }
+</style>
+</head>
+<body>
+<div style="min-height:100vh;">
+
+  <!-- HEADER -->
+  <header>
+    <div class="wrap header-row">
+      <a class="logo" href="index.html">&#128034; mooncart</a>
+      <a class="back-link" href="index.html">&larr; Back to Shop</a>
+    </div>
+  </header>
+
+  <div class="wrap breadcrumb"><a href="index.html">Home</a> &nbsp;&#8250;&nbsp; <span>Returns</span></div>
+
+  <div class="wrap page-hero">
+    <h1 class="page-title serif">Returns &amp; Exchanges</h1>
+    <div class="page-meta">We want you to love your gear. Here's how returns work.</div>
+  </div>
+
+  <div class="wrap steps">
+    <div class="step">
+      <div class="step-num">01</div>
+      <div class="step-title">Request a return</div>
+      <div class="step-body">Contact us within 30 days of delivery with your order number and reason for return.</div>
+    </div>
+    <div class="step">
+      <div class="step-num">02</div>
+      <div class="step-title">Pack it up</div>
+      <div class="step-body">Repack the item in its original packaging, unused and with tags attached where applicable.</div>
+    </div>
+    <div class="step">
+      <div class="step-num">03</div>
+      <div class="step-title">Ship it back</div>
+      <div class="step-body">We'll email a return shipping label. Drop the package at any partner courier location.</div>
+    </div>
+    <div class="step">
+      <div class="step-num">04</div>
+      <div class="step-title">Get refunded</div>
+      <div class="step-body">Once we receive and inspect your return, we'll process your refund within 5&ndash;7 business days.</div>
+    </div>
+  </div>
+
+  <div class="wrap legal">
+    <h2 class="serif">Return Window</h2>
+    <p>You may return most items within 30 days of the delivery date for a full refund to your original payment method. Items must be unused, in their original condition, and in the original packaging.</p>
+
+    <h2 class="serif">Non-Returnable Items</h2>
+    <ul>
+      <li>Resistance bands and fascia balls that have been used or removed from hygiene packaging</li>
+      <li>Items marked "Final Sale" at checkout</li>
+      <li>Gift cards</li>
+    </ul>
+
+    <h2 class="serif">Exchanges</h2>
+    <p>Need a different size or color? The fastest way is to return your original item for a refund and place a new order for the item you want. This ensures you get the replacement as quickly as possible.</p>
+
+    <h2 class="serif">Damaged or Defective Items</h2>
+    <p>If your order arrives damaged or defective, contact us within 7 days of delivery with photos of the item and packaging. We'll arrange a free replacement or full refund, including return shipping costs.</p>
+
+    <h2 class="serif">Return Shipping Costs</h2>
+    <p>Returns due to a change of mind are subject to a flat return shipping fee, deducted from your refund. Returns due to our error (wrong item, damaged in transit, or defective) are always free.</p>
+
+    <h2 class="serif">Refund Timing</h2>
+    <p>Once your return is received and inspected, refunds are issued to your original payment method within 5&ndash;7 business days. Depending on your bank, it may take a few additional days to appear on your statement.</p>
+
+    <h2 class="serif">Need Help?</h2>
+    <p>Reach out any time through our <a href="contact.html">Contact page</a> and we'll walk you through the process.</p>
+  </div>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="wrap footer-grid">
+      <div>
+        <div class="footer-brand">&#128034; mooncart</div>
+        <div class="footer-addr">Address: 451 Wall Street, UK, London<br/>Email: example@info.com<br/>Phone: (064) 332-1233</div>
+      </div>
+      <div>
+        <div class="footer-head">Our Stores</div>
+        <div class="footer-list"><span>New York</span><span>London</span><span>Edinburgh</span></div>
+      </div>
+      <div>
+        <div class="footer-head">Useful Links</div>
+        <div class="footer-list"><a href="privacy-policy.html">Privacy Policy</a><a href="returns.html">Returns</a><a href="contact.html">Contact Us</a></div>
+      </div>
+      <div>
+        <div class="footer-head">Footer Menu</div>
+        <div class="footer-list"><span>New Collection</span><a href="contact.html">Contact Us</a><span>Latest News</span></div>
+      </div>
+    </div>
+    <div class="wrap footer-bottom">&copy; 2026 Mooncart Theme. All Rights Reserved.</div>
+  </footer>
+</div>
+</body>
+</html>

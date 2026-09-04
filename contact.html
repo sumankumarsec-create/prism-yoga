@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Contact Us — mooncart</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Spectral:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1F1F1F;
+    --ink-deep:#2A2924;
+    --sage:#4F7C6B;
+    --sage-soft:#7C8B6F;
+    --gold:#F5A623;
+    --border:#ECECEC;
+    --border-warm:#E6E2D8;
+    --muted:#8A877C;
+    --muted-soft:#A6A398;
+    --muted-warm:#5B5A52;
+    --bg:#fff;
+    --bg-alt:#F7F6F2;
+    --bg-panel:#F7F5EF;
+    --bg-swatch-warm:#EFEBE0;
+  }
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; }
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'Poppins', sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  a{ color:var(--ink); text-decoration:none; }
+  a:hover{ color:var(--sage); }
+  .serif{ font-family:'Spectral', serif; }
+  .wrap{ max-width:1300px; margin:0 auto; padding-left:40px; padding-right:40px; }
+  @media (max-width:900px){ .wrap{ padding-left:20px; padding-right:20px; } }
+
+  /* header */
+  header{ border-bottom:1px solid var(--border); }
+  .header-row{ display:flex; align-items:center; justify-content:space-between; gap:24px; padding:20px 0; flex-wrap:wrap; }
+  .logo{ font-size:20px; font-weight:700; display:flex; align-items:center; gap:6px; white-space:nowrap; }
+  .back-link{ font-size:13px; font-weight:500; letter-spacing:0.02em; }
+
+  .breadcrumb{ padding:22px 0 0; font-size:13px; color:var(--muted); }
+  .breadcrumb span{ color:var(--ink); }
+
+  .page-hero{ padding:36px 0 8px; }
+  .page-title{ font-size:38px; font-weight:600; margin:0 0 8px; }
+  .page-meta{ font-size:14.5px; color:var(--muted-warm); max-width:560px; line-height:1.7; }
+
+  /* contact cards */
+  .contact-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:20px; padding:32px 0 48px; }
+  @media (max-width:800px){ .contact-grid{ grid-template-columns:1fr; } }
+  .contact-card{ background:var(--bg-panel); border:1px solid var(--border-warm); border-radius:10px; padding:26px 24px; display:flex; flex-direction:column; gap:10px; }
+  .contact-icon{ width:38px; height:38px; border-radius:50%; background:var(--bg-swatch-warm); display:flex; align-items:center; justify-content:center; font-size:17px; }
+  .contact-card-title{ font-size:14px; font-weight:600; }
+  .contact-card-body{ font-size:13px; color:var(--muted-warm); line-height:1.7; }
+  .contact-card-action{ font-size:13px; font-weight:600; color:var(--sage); margin-top:4px; }
+  .contact-card-action:hover{ color:var(--ink-deep); }
+
+  /* stores */
+  .stores-head{ font-size:20px; font-weight:600; margin:8px 0 20px; }
+  .stores-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:20px; padding-bottom:56px; }
+  @media (max-width:800px){ .stores-grid{ grid-template-columns:1fr; } }
+  .store-card{ border:1px solid var(--border-warm); border-radius:10px; padding:22px 20px; }
+  .store-city{ font-family:'Spectral', serif; font-size:19px; font-weight:600; margin-bottom:8px; }
+  .store-addr{ font-size:13px; color:var(--muted-warm); line-height:1.7; margin-bottom:10px; }
+  .store-hours{ font-size:12px; color:var(--muted); letter-spacing:0.02em; }
+
+  /* footer */
+  footer{ background:var(--bg-alt); padding:56px 0 28px; margin-top:20px; }
+  .footer-grid{ display:grid; grid-template-columns:1.4fr 1fr 1fr 1fr; gap:32px; }
+  @media (max-width:700px){ .footer-grid{ grid-template-columns:1fr 1fr; } }
+  .footer-brand{ font-size:18px; font-weight:700; margin-bottom:14px; }
+  .footer-addr{ font-size:13px; color:var(--muted); line-height:1.8; }
+  .footer-head{ font-size:14px; font-weight:600; margin-bottom:14px; }
+  .footer-list{ font-size:13px; color:var(--muted); display:flex; flex-direction:column; gap:8px; }
+  .footer-list a{ color:inherit; }
+  .footer-bottom{ margin-top:32px; padding-top:20px; border-top:1px solid var(--border); font-size:12px; color:var(--muted); }
+</style>
+</head>
+<body>
+<div style="min-height:100vh;">
+
+  <!-- HEADER -->
+  <header>
+    <div class="wrap header-row">
+      <a class="logo" href="index.html">&#128034; mooncart</a>
+      <a class="back-link" href="index.html">&larr; Back to Shop</a>
+    </div>
+  </header>
+
+  <div class="wrap breadcrumb"><a href="index.html">Home</a> &nbsp;&#8250;&nbsp; <span>Contact Us</span></div>
+
+  <div class="wrap page-hero">
+    <h1 class="page-title serif">Contact Us</h1>
+    <div class="page-meta">Questions about an order, a product, or just want to say hello? We're happy to help &mdash; reach us directly below.</div>
+  </div>
+
+  <div class="wrap contact-grid">
+    <div class="contact-card">
+      <div class="contact-icon">&#9993;</div>
+      <div class="contact-card-title">Email</div>
+      <div class="contact-card-body">For order questions, returns, or general enquiries. We reply within one business day.</div>
+      <a class="contact-card-action" href="mailto:example@info.com">example@info.com &rarr;</a>
+    </div>
+    <div class="contact-card">
+      <div class="contact-icon">&#9742;</div>
+      <div class="contact-card-title">Phone</div>
+      <div class="contact-card-body">Mon&ndash;Fri, 9am&ndash;6pm (local store time). Best for urgent order changes.</div>
+      <a class="contact-card-action" href="tel:+0643321233">(064) 332-1233 &rarr;</a>
+    </div>
+    <div class="contact-card">
+      <div class="contact-icon">&#128205;</div>
+      <div class="contact-card-title">Head Office</div>
+      <div class="contact-card-body">451 Wall Street<br/>London, UK</div>
+      <a class="contact-card-action" href="https://www.google.com/maps/search/?api=1&query=451+Wall+Street+London+UK" target="_blank" rel="noopener">Get directions &rarr;</a>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <div class="stores-head serif">Our Stores</div>
+    <div class="stores-grid">
+      <div class="store-card">
+        <div class="store-city serif">New York</div>
+        <div class="store-addr">Flagship studio &amp; retail space in Lower Manhattan.</div>
+        <div class="store-hours">Mon&ndash;Sat, 10am&ndash;7pm</div>
+      </div>
+      <div class="store-card">
+        <div class="store-city serif">London</div>
+        <div class="store-addr">Our head office and showroom, 451 Wall Street.</div>
+        <div class="store-hours">Mon&ndash;Fri, 9am&ndash;6pm</div>
+      </div>
+      <div class="store-card">
+        <div class="store-city serif">Edinburgh</div>
+        <div class="store-addr">Boutique fitting studio in the Old Town.</div>
+        <div class="store-hours">Tue&ndash;Sat, 10am&ndash;5pm</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="wrap footer-grid">
+      <div>
+        <div class="footer-brand">&#128034; mooncart</div>
+        <div class="footer-addr">Address: 451 Wall Street, UK, London<br/>Email: example@info.com<br/>Phone: (064) 332-1233</div>
+      </div>
+      <div>
+        <div class="footer-head">Our Stores</div>
+        <div class="footer-list"><span>New York</span><span>London</span><span>Edinburgh</span></div>
+      </div>
+      <div>
+        <div class="footer-head">Useful Links</div>
+        <div class="footer-list"><a href="privacy-policy.html">Privacy Policy</a><a href="returns.html">Returns</a><a href="contact.html">Contact Us</a></div>
+      </div>
+      <div>
+        <div class="footer-head">Footer Menu</div>
+        <div class="footer-list"><span>New Collection</span><a href="contact.html">Contact Us</a><span>Latest News</span></div>
+      </div>
+    </div>
+    <div class="wrap footer-bottom">&copy; 2026 Mooncart Theme. All Rights Reserved.</div>
+  </footer>
+</div>
+</body>
+</html>

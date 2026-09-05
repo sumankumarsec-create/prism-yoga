@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Order Admin — mooncart</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Spectral:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<style>
+  :root{
+    --ink:#1F1F1F;
+    --ink-deep:#2A2924;
+    --sage:#4F7C6B;
+    --sage-soft:#7C8B6F;
+    --gold:#F5A623;
+    --border:#ECECEC;
+    --border-warm:#E6E2D8;
+    --muted:#8A877C;
+    --muted-soft:#A6A398;
+    --muted-warm:#5B5A52;
+    --bg:#fff;
+    --bg-alt:#F7F6F2;
+    --bg-panel:#F7F5EF;
+    --bg-swatch-warm:#EFEBE0;
+    --danger:#C24B4B;
+    --ok:#4F7C6B;
+  }
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; }
+  body{
+    background:var(--bg-alt);
+    color:var(--ink);
+    font-family:'Poppins', sans-serif;
+    -webkit-font-smoothing:antialiased;
+    min-height:100vh;
+  }
+  a{ color:var(--ink); text-decoration:none; }
+  a:hover{ color:var(--sage); }
+  .serif{ font-family:'Spectral', serif; }
+  .wrap{ max-width:1300px; margin:0 auto; padding-left:40px; padding-right:40px; }
+  @media (max-width:900px){ .wrap{ padding-left:20px; padding-right:20px; } }
+  [hidden]{ display:none !important; }
+
+  /* header */
+  header{ background:var(--bg); border-bottom:1px solid var(--border); }
+  .header-row{ display:flex; align-items:center; justify-content:space-between; gap:24px; padding:20px 0; flex-wrap:wrap; }
+  .logo{ font-size:20px; font-weight:700; display:flex; align-items:center; gap:6px; white-space:nowrap; }
+  .back-link{ font-size:13px; font-weight:500; letter-spacing:0.02em; }
+  .header-right{ display:flex; align-items:center; gap:14px; }
+  .user-chip{ display:flex; align-items:center; gap:10px; font-size:13px; }
+  .user-chip img{ width:28px; height:28px; border-radius:50%; }
+  .signout-link{ font-size:12.5px; color:var(--muted); text-decoration:underline; cursor:pointer; }
+  .signout-link:hover{ color:var(--ink); }
+
+  /* gate screen */
+  .gate{ min-height:70vh; display:flex; align-items:center; justify-content:center; padding:40px 20px; }
+  .gate-card{ background:var(--bg); border:1px solid var(--border-warm); border-radius:14px; padding:44px 40px; max-width:420px; width:100%; text-align:center; }
+  .gate-icon{ width:52px; height:52px; border-radius:50%; background:var(--bg-swatch-warm); display:flex; align-items:center; justify-content:center; font-size:22px; margin:0 auto 18px; }
+  .gate-title{ font-size:22px; font-weight:600; margin-bottom:8px; }
+  .gate-sub{ font-size:13.5px; color:var(--muted-warm); line-height:1.7; margin-bottom:26px; }
+  .gate-btn-wrap{ display:flex; justify-content:center; }
+  .gate-denied{ font-size:13px; color:var(--danger); margin-top:16px; line-height:1.6; }
+  .gate-denied b{ color:var(--ink); }
+
+  /* page */
+  .page-hero{ padding:36px 0 6px; }
+  .page-title{ font-size:32px; font-weight:600; margin:0 0 6px; }
+  .page-meta{ font-size:13.5px; color:var(--muted-warm); }
+
+  /* stat cards */
+  .stats-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:16px; padding:26px 0 8px; }
+  @media (max-width:900px){ .stats-grid{ grid-template-columns:repeat(2,1fr); } }
+  .stat-card{ background:var(--bg); border:1px solid var(--border-warm); border-radius:10px; padding:20px 20px; }
+  .stat-label{ font-size:11.5px; text-transform:uppercase; letter-spacing:0.06em; color:var(--muted); margin-bottom:8px; }
+  .stat-value{ font-size:24px; font-weight:600; font-variant-numeric:tabular-nums; }
+  .stat-value.serif{ font-family:'Spectral', serif; }
+
+  /* controls */
+  .controls-row{ display:flex; gap:12px; align-items:center; flex-wrap:wrap; padding:22px 0 16px; }
+  .control{ display:flex; flex-direction:column; gap:6px; }
+  .control label{ font-size:11px; text-transform:uppercase; letter-spacing:0.05em; color:var(--muted); }
+  .control select, .control input{
+    font-family:inherit; font-size:13.5px; padding:9px 12px; border:1px solid var(--border-warm); border-radius:8px;
+    background:var(--bg); color:var(--ink); min-width:200px;
+  }
+  .control select:focus, .control input:focus{ outline:2px solid var(--sage-soft); outline-offset:1px; }
+  .refresh-btn{
+    font-family:inherit; font-size:13px; font-weight:600; padding:10px 18px; border-radius:8px; border:1px solid var(--sage);
+    background:var(--sage); color:#fff; cursor:pointer; align-self:flex-end; height:38px;
+  }
+  .refresh-btn:hover{ background:var(--ink-deep); border-color:var(--ink-deep); }
+  .refresh-btn:disabled{ opacity:0.6; cursor:default; }
+  .result-count{ font-size:12.5px; color:var(--muted); align-self:flex-end; height:38px; display:flex; align-items:center; }
+
+  /* table */
+  .table-wrap{ background:var(--bg); border:1px solid var(--border-warm); border-radius:10px; overflow:auto; margin-bottom:56px; }
+  table{ width:100%; border-collapse:collapse; font-size:13px; min-width:960px; }
+  thead th{
+    text-align:left; font-size:11px; text-transform:uppercase; letter-spacing:0.05em; color:var(--muted);
+    padding:14px 16px; border-bottom:1px solid var(--border-warm); background:var(--bg-panel); white-space:nowrap;
+  }
+  tbody td{ padding:14px 16px; border-bottom:1px solid var(--border); vertical-align:top; }
+  tbody tr:last-child td{ border-bottom:none; }
+  tbody tr:hover{ background:var(--bg-panel); }
+  .order-num{ font-weight:600; }
+  .order-date{ color:var(--muted); font-size:12px; }
+  .items-cell{ max-width:260px; color:var(--muted-warm); }
+  .amount{ font-variant-numeric:tabular-nums; font-weight:600; }
+  .pill{ display:inline-block; font-size:11px; font-weight:600; padding:4px 10px; border-radius:999px; white-space:nowrap; }
+  .pill-cod{ background:#FBEFDD; color:#8A5A1A; }
+  .pill-online{ background:#E6EFEA; color:var(--sage); }
+  .empty-state{ padding:64px 20px; text-align:center; color:var(--muted); font-size:13.5px; }
+  .loading-state{ padding:64px 20px; text-align:center; color:var(--muted); font-size:13.5px; }
+  .error-state{ padding:24px 20px; text-align:center; color:var(--danger); font-size:13px; }
+</style>
+</head>
+<body>
+<div style="min-height:100vh;">
+
+  <!-- HEADER -->
+  <header>
+    <div class="wrap header-row">
+      <a class="logo" href="index.html">&#128034; mooncart admin</a>
+      <div class="header-right">
+        <div id="googleBtnContainer"></div>
+        <div class="user-chip" id="userChip" hidden>
+          <img id="userAvatar" src="" alt="" />
+          <span id="userName"></span>
+          <span class="signout-link" id="signOutBtn">Sign out</span>
+        </div>
+        <a class="back-link" href="index.html">&larr; Back to Shop</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- SIGN-IN GATE -->
+  <div class="gate" id="gateScreen">
+    <div class="gate-card">
+      <div class="gate-icon">&#128274;</div>
+      <div class="gate-title serif">Admin sign-in required</div>
+      <div class="gate-sub">This page shows incoming Prism Yoga orders. Sign in with the store's admin Google account to continue.</div>
+      <div class="gate-btn-wrap" id="gateBtnContainer"></div>
+      <div class="gate-denied" id="gateDenied" hidden></div>
+    </div>
+  </div>
+
+  <!-- ADMIN CONTENT -->
+  <div id="adminContent" hidden>
+    <div class="wrap page-hero">
+      <h1 class="page-title serif">Orders</h1>
+      <div class="page-meta">Live order data pulled from the Prism Yoga order backend.</div>
+    </div>
+
+    <div class="wrap stats-grid">
+      <div class="stat-card">
+        <div class="stat-label">Total Orders</div>
+        <div class="stat-value serif" id="statCount">&mdash;</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Revenue (filtered)</div>
+        <div class="stat-value serif" id="statRevenue">&mdash;</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Cash on Delivery</div>
+        <div class="stat-value serif" id="statCod">&mdash;</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Paid Online</div>
+        <div class="stat-value serif" id="statOnline">&mdash;</div>
+      </div>
+    </div>
+
+    <div class="wrap controls-row">
+      <div class="control">
+        <label for="productFilter">Filter by product</label>
+        <select id="productFilter">
+          <option value="">All products</option>
+        </select>
+      </div>
+      <div class="control">
+        <label for="searchInput">Search order # / name / email</label>
+        <input type="text" id="searchInput" placeholder="e.g. PRZ102938 or a customer name" />
+      </div>
+      <button class="refresh-btn" id="refreshBtn">Refresh</button>
+      <div class="result-count" id="resultCount"></div>
+    </div>
+
+    <div class="wrap">
+      <div class="table-wrap">
+        <table id="ordersTable">
+          <thead>
+            <tr>
+              <th>Order #</th>
+              <th>Customer</th>
+              <th>Contact</th>
+              <th>Shipping</th>
+              <th>Items</th>
+              <th>Total</th>
+              <th>Payment</th>
+              <th>Delivery</th>
+            </tr>
+          </thead>
+          <tbody id="ordersBody"></tbody>
+        </table>
+        <div class="loading-state" id="loadingState">Loading orders&hellip;</div>
+        <div class="empty-state" id="emptyState" hidden>No orders match this filter yet.</div>
+        <div class="error-state" id="errorState" hidden></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+(function(){
+  var GOOGLE_CLIENT_ID = '590946552242-ptai94bp8lp1mvb9qsd1gofj5hnsnjb0.apps.googleusercontent.com';
+  var ADMIN_EMAIL = 'sumankumar.officialone@gmail.com';
+  var ORDERS_WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbyZ2m2TLEqDoDxNc7PV7sjIC8uzMxgRPMXOQVuIZq6Ez8WciQzl-hvnIVp7y4SHIs8hTQ/exec';
+  var ORDERS_WEBAPP_TOKEN = '_mylkxLRFpUc0a5Cv0gd8JyupmmZSWj4';
+  var AUTH_STORAGE_KEY = 'prismYogaAdminUser';
+
+  var allOrders = [];
+  var currentUser = null;
+
+  function decodeJwt(token){
+    try {
+      var base64Url = token.split('.')[1];
+      var base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      var jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c){
+        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+      }).join(''));
+      return JSON.parse(jsonPayload);
+    } catch (e){ return null; }
+  }
+
+  function money(n){
+    n = Number(n) || 0;
+    return '₹' + n.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  function showGate(){
+    document.getElementById('gateScreen').hidden = false;
+    document.getElementById('adminContent').hidden = true;
+  }
+  function showAdmin(){
+    document.getElementById('gateScreen').hidden = true;
+    document.getElementById('adminContent').hidden = false;
+  }
+
+  function renderAuthArea(){
+    var headerBtn = document.getElementById('googleBtnContainer');
+    var chip = document.getElementById('userChip');
+    if (currentUser){
+      headerBtn.hidden = true;
+      chip.hidden = false;
+      document.getElementById('userAvatar').src = currentUser.picture || '';
+      document.getElementById('userName').textContent = currentUser.name || currentUser.email || 'Signed in';
+    } else {
+      headerBtn.hidden = false;
+      chip.hidden = true;
+    }
+  }
+
+  function handleCredentialResponse(response){
+    var payload = decodeJwt(response.credential);
+    if (!payload) return;
+    currentUser = { name: payload.name, email: payload.email, picture: payload.picture };
+    try { localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(currentUser)); } catch (e){}
+    renderAuthArea();
+    checkAccess();
+  }
+
+  function signOut(){
+    currentUser = null;
+    try { localStorage.removeItem(AUTH_STORAGE_KEY); } catch (e){}
+    if (window.google && google.accounts && google.accounts.id) {
+      google.accounts.id.disableAutoSelect();
+    }
+    renderAuthArea();
+    showGate();
+    document.getElementById('gateDenied').hidden = true;
+    document.getElementById('gateBtnContainer').hidden = false;
+  }
+  document.getElementById('signOutBtn').addEventListener('click', signOut);
+
+  function checkAccess(){
+    if (!currentUser){ showGate(); return; }
+    if (currentUser.email !== ADMIN_EMAIL){
+      document.getElementById('gateBtnContainer').hidden = true;
+      var denied = document.getElementById('gateDenied');
+      denied.hidden = false;
+      denied.innerHTML = 'Signed in as <b>' + currentUser.email + '</b>, which is not the admin account. Sign out and sign in with <b>' + ADMIN_EMAIL + '</b> to view orders.';
+      showGate();
+      return;
+    }
+    showAdmin();
+    loadOrders();
+  }
+
+  function initGoogleAuth(){
+    try {
+      var saved = localStorage.getItem(AUTH_STORAGE_KEY);
+      if (saved) currentUser = JSON.parse(saved);
+    } catch (e){}
+    renderAuthArea();
+
+    function setup(){
+      if (!(window.google && google.accounts && google.accounts.id)) return false;
+      google.accounts.id.initialize({
+        client_id: GOOGLE_CLIENT_ID,
+        callback: handleCredentialResponse,
+        auto_select: false
+      });
+      if (!currentUser){
+        google.accounts.id.renderButton(document.getElementById('googleBtnContainer'), {
+          theme: 'outline', size: 'medium', shape: 'pill', text: 'signin_with'
+        });
+      }
+      google.accounts.id.renderButton(document.getElementById('gateBtnContainer'), {
+        theme: 'filled_blue', size: 'large', shape: 'pill', text: 'signin_with'
+      });
+      return true;
+    }
+
+    if (!setup()){
+      var tries = 0;
+      var poll = setInterval(function(){
+        tries += 1;
+        if (setup() || tries > 40) clearInterval(poll);
+      }, 250);
+    }
+
+    checkAccess();
+  }
+
+  // ---------- order data ----------
+  function parseItemNames(itemsStr){
+    // "Yoga Mat x1 (Rs 1999); Block x2 (Rs 499)" -> ["Yoga Mat", "Block"]
+    if (!itemsStr) return [];
+    return itemsStr.split(';').map(function(seg){
+      var m = seg.trim().match(/^(.*)\sx\d+\s*\(/);
+      return m ? m[1].trim() : seg.trim();
+    }).filter(Boolean);
+  }
+
+  function populateProductFilter(orders){
+    var select = document.getElementById('productFilter');
+    var current = select.value;
+    var names = {};
+    orders.forEach(function(o){
+      parseItemNames(o['Items']).forEach(function(n){ names[n] = true; });
+    });
+    var sorted = Object.keys(names).sort(function(a,b){ return a.localeCompare(b); });
+    select.innerHTML = '<option value="">All products</option>' + sorted.map(function(n){
+      return '<option value="' + n.replace(/"/g,'&quot;') + '">' + n + '</option>';
+    }).join('');
+    if (sorted.indexOf(current) !== -1) select.value = current;
+  }
+
+  function orderMatchesFilters(o, product, search){
+    if (product){
+      var names = parseItemNames(o['Items']);
+      if (names.indexOf(product) === -1) return false;
+    }
+    if (search){
+      var haystack = [
+        o['Order Number'], o['Customer Name'], o['Email'], o['Mobile'], o['Items']
+      ].join(' ').toLowerCase();
+      if (haystack.indexOf(search.toLowerCase()) === -1) return false;
+    }
+    return true;
+  }
+
+  function renderStats(filtered){
+    document.getElementById('statCount').textContent = filtered.length;
+    var revenue = filtered.reduce(function(sum, o){ return sum + (Number(o['Total']) || 0); }, 0);
+    document.getElementById('statRevenue').textContent = money(revenue);
+    var cod = filtered.filter(function(o){ return (o['Payment Method'] || '') === 'Cash on Delivery'; }).length;
+    document.getElementById('statCod').textContent = cod;
+    document.getElementById('statOnline').textContent = filtered.length - cod;
+  }
+
+  function fmtDate(iso){
+    try {
+      var d = new Date(iso);
+      if (isNaN(d.getTime())) return iso || '';
+      return d.toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' }) + ' · ' +
+             d.toLocaleTimeString('en-US', { hour:'2-digit', minute:'2-digit' });
+    } catch(e){ return iso || ''; }
+  }
+
+  function renderTable(){
+    var product = document.getElementById('productFilter').value;
+    var search = document.getElementById('searchInput').value.trim();
+    var filtered = allOrders.filter(function(o){ return orderMatchesFilters(o, product, search); });
+
+    renderStats(filtered);
+    document.getElementById('resultCount').textContent = filtered.length + ' of ' + allOrders.length + ' orders';
+
+    var body = document.getElementById('ordersBody');
+    var empty = document.getElementById('emptyState');
+    if (filtered.length === 0){
+      body.innerHTML = '';
+      empty.hidden = false;
+      return;
+    }
+    empty.hidden = true;
+
+    body.innerHTML = filtered.map(function(o){
+      var isCod = (o['Payment Method'] || '') === 'Cash on Delivery';
+      return '<tr>' +
+        '<td><div class="order-num">' + (o['Order Number'] || '') + '</div><div class="order-date">' + fmtDate(o['Timestamp']) + '</div></td>' +
+        '<td>' + (o['Customer Name'] || '') + '</td>' +
+        '<td>' + (o['Email'] || '') + '<br/><span style="color:var(--muted)">' + (o['Mobile'] || '') + '</span></td>' +
+        '<td>' + [(o['Address']||''), (o['City']||''), (o['State']||''), (o['PIN']||'')].filter(Boolean).join(', ') + '</td>' +
+        '<td class="items-cell">' + (o['Items'] || '') + '</td>' +
+        '<td class="amount">' + money(o['Total']) + '</td>' +
+        '<td><span class="pill ' + (isCod ? 'pill-cod' : 'pill-online') + '">' + (o['Payment Method'] || '') + (o['Payment ID'] ? '<br/><span style="font-weight:400;opacity:.75">' + o['Payment ID'] + '</span>' : '') + '</span></td>' +
+        '<td>' + (o['Delivery Method'] || '') + '</td>' +
+        '</tr>';
+    }).join('');
+  }
+
+  function loadOrders(){
+    var loading = document.getElementById('loadingState');
+    var errorState = document.getElementById('errorState');
+    var table = document.getElementById('ordersTable');
+    loading.hidden = false;
+    errorState.hidden = true;
+    table.style.display = 'none';
+    document.getElementById('emptyState').hidden = true;
+
+    var refreshBtn = document.getElementById('refreshBtn');
+    refreshBtn.disabled = true;
+
+    fetch(ORDERS_WEBAPP_URL + '?token=' + ORDERS_WEBAPP_TOKEN, { method: 'GET' })
+      .then(function(res){ return res.json(); })
+      .then(function(data){
+        refreshBtn.disabled = false;
+        loading.hidden = true;
+        table.style.display = '';
+        if (!data.ok){
+          errorState.hidden = false;
+          errorState.textContent = 'Backend error: ' + (data.error || 'unknown error');
+          return;
+        }
+        allOrders = data.orders || [];
+        populateProductFilter(allOrders);
+        renderTable();
+      })
+      .catch(function(err){
+        refreshBtn.disabled = false;
+        loading.hidden = true;
+        table.style.display = '';
+        errorState.hidden = false;
+        errorState.textContent = 'Could not reach the order backend. ' + (err && err.message ? err.message : '');
+      });
+  }
+
+  document.getElementById('refreshBtn').addEventListener('click', loadOrders);
+  document.getElementById('productFilter').addEventListener('change', renderTable);
+  document.getElementById('searchInput').addEventListener('input', renderTable);
+
+  initGoogleAuth();
+})();
+</script>
+</body>
+</html>

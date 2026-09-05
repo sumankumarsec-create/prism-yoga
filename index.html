@@ -1114,7 +1114,7 @@
       ? '(' + p.reviewCount + ' customer review' + (p.reviewCount === 1 ? '' : 's') + ')'
       : '';
     document.getElementById('shortDesc').textContent = p.shortDescription;
-    document.getElementById('priceNow').textContent = p.priceMin != null
+    document.getElementById('priceNow').textContent = (p.priceMin != null && p.priceMin !== p.priceMax)
       ? '₹' + money(p.priceMin) + ' – ₹' + money(p.priceMax)
       : '₹' + money(p.price);
     var priceMrpEl = document.getElementById('priceMrp');
@@ -1206,7 +1206,7 @@
       var photoHtml = (r.images && r.images.length)
         ? '<img src="' + r.images[0] + '" alt="' + esc(r.name) + '" />'
         : 'PRODUCT PHOTO';
-      var priceHtml = r.priceMin != null
+      var priceHtml = (r.priceMin != null && r.priceMin !== r.priceMax)
         ? '<span class="now">₹' + money(r.priceMin) + ' – ₹' + money(r.priceMax) + '</span>'
         : (r.sale && r.mrp
             ? '<span class="mrp">₹' + money(r.mrp) + '</span><span class="now">₹' + money(r.price) + '</span>'

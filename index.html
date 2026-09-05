@@ -607,6 +607,29 @@
   };
   var toastTimer = null;
 
+  // ---------- cart & wishlist persistence ----------
+  var CART_STORAGE_KEY = 'prismYogaCart';
+
+  function saveCartState(){
+    try {
+      localStorage.setItem(CART_STORAGE_KEY, JSON.stringify({ cart: state.cart, wishlist: state.wishlist }));
+    } catch (e){ /* storage unavailable — cart just won't persist */ }
+  }
+
+  function loadCartState(){
+    try {
+      var saved = localStorage.getItem(CART_STORAGE_KEY);
+      if (!saved) return;
+      var data = JSON.parse(saved);
+      if (data && Array.isArray(data.cart)){
+        state.cart = data.cart.filter(function(c){ return c && c.id && findProduct(c.id) && c.qty > 0; });
+      }
+      if (data && Array.isArray(data.wishlist)){
+        state.wishlist = data.wishlist.filter(function(id){ return findProduct(id); });
+      }
+    } catch (e){ /* ignore corrupt/blocked storage */ }
+  }
+
   function mainProduct(){ return findProduct(state.slots.main); }
 
   function showToast(msg){
@@ -698,6 +721,10 @@
     var num = 'PRZ' + Math.floor(100000 + Math.random() * 900000);
     var d = new Date(Date.now() + 5 * 86400000);
     notifyOrderBackend(num, paymentId);
+    if (state.checkout.mode === 'cart'){
+      var orderedIds = state.checkout.items.map(function(it){ return it.id; });
+      state.cart = state.cart.filter(function(c){ return orderedIds.indexOf(c.id) === -1; });
+    }
     state.checkout.step = 3;
     state.order = {
       number: num,
@@ -1315,6 +1342,7 @@
     renderCartDrawer();
     renderWishlistPanel();
     renderCheckout();
+    saveCartState();
   }
 
   // ---------- Google sign-in ----------
@@ -1400,6 +1428,7 @@
     }
   }
 
+  loadCartState();
   renderAll();
   initGoogleAuth();
 })();

@@ -127,6 +127,16 @@
   .benefit{ display:flex; align-items:center; gap:8px; font-size:13px; color:var(--muted-warm); }
   .benefit .tick{ color:var(--sage); }
 
+  /* ---------- reviews ---------- */
+  .review-panel{ max-width:480px; margin:0 auto; text-align:left; }
+  .review-empty{ text-align:center; color:var(--muted); font-size:14px; margin-bottom:22px; }
+  .star-input{ display:flex; gap:6px; font-size:26px; line-height:1; margin-bottom:4px; }
+  .star-input span{ color:var(--strike); cursor:pointer; }
+  .star-input span.filled{ color:var(--gold); }
+  .review-form{ display:flex; flex-direction:column; gap:14px; margin-top:6px; }
+  textarea.form-input{ resize:vertical; font-family:inherit; }
+  .review-thanks{ text-align:center; color:var(--sage); font-size:14px; padding:28px 0; }
+
   /* ---------- gallery ---------- */
   .gallery-row{ display:grid; grid-template-columns:repeat(3,1fr); gap:20px; padding:0 0 64px; }
   .gallery-cell{ position:relative; aspect-ratio:4/3.3; background:var(--bg-swatch); border-radius:8px; overflow:hidden; display:flex; align-items:center; justify-content:center; color:var(--muted-soft); font-size:12px; }
@@ -365,12 +375,15 @@
   <!-- DESCRIPTION -->
   <section class="desc-section">
     <div class="tabs">
-      <div class="tab active">Description</div>
+      <div class="tab active" id="descTab">Description</div>
       <div class="tab" id="reviewsTab"></div>
     </div>
-    <h3 id="descName"></h3>
-    <p id="descLong"></p>
-    <div class="benefits" id="benefits"></div>
+    <div id="descPanel">
+      <h3 id="descName"></h3>
+      <p id="descLong"></p>
+      <div class="benefits" id="benefits"></div>
+    </div>
+    <div class="review-panel" id="reviewsPanel" hidden></div>
   </section>
 
   <!-- GALLERY ROW -->
@@ -603,7 +616,9 @@
     checkout: null, // {mode, items:[{id,qty}], step}
     form: { fullName: '', mobile: '', email: '', address: '', city: '', state: '', pin: '' },
     delivery: 0, payment: 0, order: null, toast: '',
-    user: null
+    user: null,
+    activeTab: 'desc',
+    reviewForm: { rating: 5, name: '', email: '', title: '', text: '', submitted: false }
   };
   var toastTimer = null;
 
@@ -688,6 +703,7 @@
       var taxNum = subtotalNum * 0.05;
       var totalNum = subtotalNum + shippingCost + taxNum;
       var payload = {
+        type: 'order',
         orderNumber: orderNumber,
         paymentId: paymentId || '',
         fullName: f.fullName, email: f.email, mobile: f.mobile,
@@ -706,6 +722,26 @@
         body: JSON.stringify(payload)
       }).catch(function(){ /* order still succeeds for the customer even if logging fails */ });
     } catch (err){ /* never block checkout on a notification failure */ }
+  }
+
+  function notifyReviewBackend(product, rf){
+    try {
+      var payload = {
+        type: 'review',
+        productId: product.id,
+        productName: product.name,
+        rating: rf.rating,
+        reviewerName: rf.name,
+        reviewerEmail: rf.email,
+        title: rf.title,
+        text: rf.text
+      };
+      fetch(ORDERS_WEBAPP_URL + '?token=' + ORDERS_WEBAPP_TOKEN, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(payload)
+      }).catch(function(){ /* review still saved for the customer even if logging fails */ });
+    } catch (err){ /* never block review submission on a notification failure */ }
   }
 
   function checkoutTotalNum(){
@@ -792,6 +828,26 @@
     if (idx >= 0) state.wishlist.splice(idx, 1); else state.wishlist.push(id);
     renderAll();
   }
+  function setActiveTab(tab){
+    state.activeTab = tab;
+    renderAll();
+  }
+  function setReviewRating(val){
+    state.reviewForm.rating = val;
+    renderAll();
+  }
+  function submitReview(){
+    var rf = state.reviewForm;
+    if (!rf.name.trim() || !rf.text.trim()){
+      showToast('Please add your name and a review before submitting');
+      return;
+    }
+    var p = mainProduct();
+    notifyReviewBackend(p, rf);
+    rf.submitted = true;
+    renderAll();
+    showToast('Thanks for your review!');
+  }
   function toggleWishlist(id){
     var idx = state.wishlist.indexOf(id);
     if (idx >= 0) state.wishlist.splice(idx, 1); else state.wishlist.push(id);
@@ -804,6 +860,8 @@
     state.slots.main = newMainId;
     state.selectedImage = 0;
     state.selectedColor = 0;
+    state.activeTab = 'desc';
+    state.reviewForm = { rating: 5, name: '', email: '', title: '', text: '', submitted: false };
     renderAll();
     showToast(findProduct(newMainId).name + ' is now the featured product');
     var top = document.querySelector('.product-grid');
@@ -939,6 +997,8 @@
   document.getElementById('addToCartBtn').addEventListener('click', addToCart);
   document.getElementById('buyNowBtn').addEventListener('click', buyNow);
   document.getElementById('wishMainBtn').addEventListener('click', toggleWishlistMain);
+  document.getElementById('descTab').addEventListener('click', function(){ setActiveTab('desc'); });
+  document.getElementById('reviewsTab').addEventListener('click', function(){ setActiveTab('reviews'); });
 
   attachZoomLens(document.getElementById('mainPhoto'), function(){
     return document.querySelector('#mainPhoto img');
@@ -1342,7 +1402,52 @@
     renderCartDrawer();
     renderWishlistPanel();
     renderCheckout();
+    renderReviewsPanel();
     saveCartState();
+  }
+
+  function renderReviewsPanel(){
+    var showReviews = state.activeTab === 'reviews';
+    document.getElementById('descTab').classList.toggle('active', !showReviews);
+    document.getElementById('reviewsTab').classList.toggle('active', showReviews);
+    document.getElementById('descPanel').hidden = showReviews;
+    var panel = document.getElementById('reviewsPanel');
+    panel.hidden = !showReviews;
+    if (!showReviews) return;
+
+    var p = mainProduct();
+    var rf = state.reviewForm;
+
+    if (rf.submitted){
+      panel.innerHTML = '<div class="review-thanks">Thank you — your review of ' + esc(p.name) + ' has been submitted.</div>';
+      return;
+    }
+
+    var starsInput = '';
+    for (var i = 1; i <= 5; i++){
+      starsInput += '<span data-role="star" data-value="' + i + '" class="' + (i <= rf.rating ? 'filled' : '') + '">' + (i <= rf.rating ? '★' : '☆') + '</span>';
+    }
+
+    panel.innerHTML =
+      (p.reviewCount ? '' : '<div class="review-empty">No reviews yet. Be the first to review ' + esc(p.name) + '.</div>') +
+      '<div class="review-form">' +
+        '<div class="field-label">Your rating</div>' +
+        '<div class="star-input" id="starInput">' + starsInput + '</div>' +
+        '<input class="form-input" data-review-field="name" placeholder="Your name" value="' + esc(rf.name) + '" />' +
+        '<input class="form-input" data-review-field="email" placeholder="Your email (optional)" value="' + esc(rf.email) + '" />' +
+        '<input class="form-input" data-review-field="title" placeholder="Review title" value="' + esc(rf.title) + '" />' +
+        '<textarea class="form-input" rows="4" data-review-field="text" placeholder="Share details of your experience with this product">' + esc(rf.text) + '</textarea>' +
+        '<button type="button" class="btn btn-dark" id="submitReviewBtn" style="width:fit-content;">Submit Review</button>' +
+      '</div>';
+
+    Array.prototype.forEach.call(panel.querySelectorAll('[data-role="star"]'), function(n){
+      n.addEventListener('click', function(){ setReviewRating(parseInt(n.getAttribute('data-value'), 10)); });
+    });
+    Array.prototype.forEach.call(panel.querySelectorAll('[data-review-field]'), function(n){
+      n.addEventListener('input', function(){ state.reviewForm[n.getAttribute('data-review-field')] = n.value; });
+    });
+    var submitBtn = document.getElementById('submitReviewBtn');
+    if (submitBtn) submitBtn.addEventListener('click', submitReview);
   }
 
   // ---------- Google sign-in ----------

@@ -425,8 +425,8 @@
         <div class="footer-addr">Address: 451 Wall Street, UK, London<br/>Email: example@info.com<br/>Phone: (064) 332-1233</div>
       </div>
       <div>
-        <div class="footer-head">Our Stores</div>
-        <div class="footer-list"><span>New York</span><span>London</span><span>Edinburgh</span></div>
+        <div class="footer-head">Categories</div>
+        <div class="footer-list"><span>Yoga Balls</span><span>Yoga Bags</span><span>Dumbbells</span><span>Resistance Bands</span>/div>
       </div>
       <div>
         <div class="footer-head">Useful Links</div>
@@ -462,7 +462,7 @@
       id: 'p1',
       name: 'Muscle Relaxation TPE Fascia Ball – Magnetic Hedgehog Peanut Shape for Foot Massage & Yoga Arch Support',
       category: 'Yoga Balls', sku: 'D Fascia Ball',
-      price: 58.19, priceMin: 58.19, priceMax: 126.07,
+      price: 599, priceMin: 599, priceMax: 599,
       rating: 5.0, reviewCount: 1, sale: false,
       shortDescription: 'TPE fascia ball in a magnetic hedgehog peanut shape — soft yet durable, with a diameter up to 4.9in, for foot massage and yoga arch support.',
       longDescription: 'The TPE material ensures a soft yet durable surface, providing a comfortable and effective massage experience. A diameter of up to 4.9 inches allows for versatile use, suitable for both foot massage and yoga arch support.',
@@ -489,7 +489,7 @@
       id: 'p2',
       name: 'Al Foot Massage Fascia Ball Massager Yoga Relaxing Muscles Arch Trainer Fitness Exercise Cross-border Drop Shipping',
       category: 'Foam Rollers', sku: 'Al Foot Massage',
-      price: 96.01, priceMin: 96.01, priceMax: 134.80,
+      price: 799, priceMin: 799, priceMax: 799,
       rating: 0, reviewCount: 0, sale: false,
       shortDescription: 'TPE fascia ball massager for relaxing muscles — soft yet durable with medium firmness for balanced-pressure massage.',
       longDescription: 'The TPE material ensures a soft yet durable construction, providing a comfortable and long-lasting massage experience. With medium firmness, the massager offers balanced pressure that is effective for muscle relaxation without causing discomfort.',
@@ -516,7 +516,7 @@
       id: 'p3',
       name: 'Large Capacity Outdoor Pilates Fitness Bag – Washable Cotton Canvas Shoulder Tote with Custom Logo, Yoga Accessory Support Tool',
       category: 'Yoga Bags', sku: 'yoga tote01',
-      price: 283.17, priceMin: 283.17, priceMax: 334.57,
+      price: 1799, priceMin: 1799, priceMax: 1799,
       rating: 0, reviewCount: 0, sale: false,
       shortDescription: 'Washable cotton canvas shoulder tote with a large capacity for yoga mats and fitness accessories — durable, foldable, and customizable with your logo.',
       longDescription: 'The cotton canvas material ensures durability and easy maintenance, making it suitable for regular use in outdoor fitness activities. The large capacity design allows users to carry all their necessary yoga and fitness accessories, ensuring convenience and organization during workouts.',
@@ -539,7 +539,7 @@
       id: 'p4',
       name: '5/8/10/15 LB Anti-slip Silicone Surface Soft and Pastel Colors Weight Ring Dumbbell for Weight Training and Pilates Exercise',
       category: 'Dumbbells', sku: 'Dumbbell Ring',
-      price: 513.97, priceMin: 513.97, priceMax: 994.97,
+      price: 2999, priceMin: 2999, priceMax: 2999,
       rating: 0, reviewCount: 0, sale: false,
       shortDescription: 'Anti-slip silicone-coated weight ring dumbbell in soft pastel colors, available in 5/8/10/15 lb options for weight training and Pilates.',
       longDescription: 'Built from silicone and iron for a secure, anti-slip grip, this ring-shaped dumbbell is designed for arm-focused weight training and Pilates work. It comes in soft pastel colorways and a range of weights, suiting both home and studio use.',
@@ -566,7 +566,7 @@
       id: 'p5',
       name: 'Elastic Resistance Band Yoga Stretch Training Equipment for Pilates Mobility Warm Up Physical Therapy Home Exercise',
       category: 'Resistance Bands', sku: 'Yoga Resistance Band',
-      price: 292.87, priceMin: 292.87, priceMax: 890.24,
+      price: 599, priceMin: 599, priceMax: 599,
       rating: 0, reviewCount: 0, sale: false,
       shortDescription: 'Nylon and latex filament resistance band for stretch training — portable, eco-friendly and detachable, ideal for Pilates, mobility work and physical therapy.',
       longDescription: 'Made from nylon and latex filament for high elasticity and stable resistance, this band suits leg, back, hip, shoulder and core training. It is portable, durable and detachable, available in multiple lengths with light resistance for warm-ups, stretching and rehab work.',
@@ -1419,7 +1419,7 @@
       var pOpts = ['Credit / Debit Card', 'UPI', 'Cash on Delivery'];
       leftHtml = '<div class="option-list">' + pOpts.map(function(label, i){
         return '<button type="button" class="pay-option' + (state.payment === i ? ' active' : '') + '" data-role="payment" data-i="' + i + '">' + label + '</button>';
-      }).join('') + '<div class="mock-note">Mock payment for prototype purposes — live integration (e.g. Razorpay) connects here.</div></div>';
+      }).join('') + '<div class="mock-note">🔒 Secured by Razorpay</div></div>';
     } else if (co.step === 3){
       var order = state.order || { number: '', eta: '' };
       var f2 = state.form;

@@ -26,6 +26,8 @@
     --bg-swatch-warm:#EFEBE0;
     --btn-ghost:#F5F5F5;
     --pill-off:#EFEBE0;
+    --error:#C0392B;
+    --error-bg:#FBEAEA;
   }
   *{ box-sizing:border-box; }
   html,body{ margin:0; }
@@ -244,8 +246,15 @@
 
   .form-col{ display:flex; flex-direction:column; gap:14px; }
   .form-input{ border:1px solid var(--border-warm); padding:12px 14px; font-size:14px; background:#fff; font-family:inherit; outline:none; color:var(--ink); width:100%; }
+  .form-input.invalid{ border-color:var(--error); background:var(--error-bg); }
   .form-row3{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; }
   @media (max-width:520px){ .form-row3{ grid-template-columns:1fr; } }
+  .field-group{ display:flex; flex-direction:column; gap:4px; }
+  .field-error{ font-size:12px; color:var(--error); min-height:14px; line-height:1.3; }
+  .pin-status{ font-size:12px; min-height:14px; line-height:1.3; }
+  .pin-status.loading{ color:var(--muted); }
+  .pin-status.success{ color:var(--sage); }
+  .pin-status.error{ color:var(--error); }
 
   .option-list{ display:flex; flex-direction:column; gap:12px; }
   .option{ display:flex; justify-content:space-between; align-items:center; padding:16px; border:1px solid var(--border-warm); background:#fff; cursor:pointer; text-align:left; width:100%; font-family:inherit; }
@@ -589,6 +598,10 @@
     { name: 'Sand', hex: '#D9D5C8' }
   ];
   var STEP_TITLES = ['Your Details', 'Delivery Method', 'Payment', 'Order Confirmation'];
+  var EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  var MOBILE_RE = /^[6-9]\d{9}$/;
+  var PIN_RE = /^[1-9]\d{5}$/;
+  var PINCODE_API_BASE = 'https://api.postalpincode.in/pincode/';
 
   function findProduct(id){
     for (var i = 0; i < CATALOG.length; i++) if (CATALOG[i].id === id) return CATALOG[i];
@@ -615,6 +628,8 @@
     cartOpen: false, wishlistOpen: false,
     checkout: null, // {mode, items:[{id,qty}], step}
     form: { fullName: '', mobile: '', email: '', address: '', city: '', state: '', pin: '' },
+    formErrors: {},
+    pinLookup: { status: 'idle', message: '' },
     delivery: 0, payment: 0, order: null, toast: '',
     user: null,
     activeTab: 'desc',
@@ -668,6 +683,8 @@
     var p = mainProduct();
     state.checkout = { mode: 'buynow', items: [{ id: p.id, qty: state.qty }], step: 0 };
     state.form = { fullName: '', mobile: '', email: '', address: '', city: '', state: '', pin: '' };
+    state.formErrors = {};
+    state.pinLookup = { status: 'idle', message: '' };
     state.delivery = 0; state.payment = 0; state.order = null;
     renderAll();
   }
@@ -676,6 +693,8 @@
     state.checkout = { mode: 'cart', items: state.cart.map(function(c){ return { id: c.id, qty: c.qty }; }), step: 0 };
     state.cartOpen = false;
     state.form = { fullName: '', mobile: '', email: '', address: '', city: '', state: '', pin: '' };
+    state.formErrors = {};
+    state.pinLookup = { status: 'idle', message: '' };
     state.delivery = 0; state.payment = 0; state.order = null;
     renderAll();
   }
@@ -801,6 +820,11 @@
   }
 
   function checkoutNext(){
+    if (state.checkout.step === 0 && !validateDetailsForm()){
+      renderAll();
+      showToast('Please fix the highlighted fields');
+      return;
+    }
     if (state.checkout.step === 2){
       if (state.payment === 2){
         // Cash on Delivery — no online payment needed
@@ -904,6 +928,64 @@
   function setField(key, val){ state.form[key] = val; }
   function selectDelivery(i){ state.delivery = i; renderAll(); }
   function selectPayment(i){ state.payment = i; renderAll(); }
+
+  // ---------- shipping details validation ----------
+  function validateDetailsForm(){
+    var f = state.form;
+    var errs = {};
+    if (!f.fullName.trim()) errs.fullName = 'Please enter your full name';
+    if (!f.mobile.trim()) errs.mobile = 'Mobile number is required';
+    else if (!MOBILE_RE.test(f.mobile.trim())) errs.mobile = 'Enter a valid 10-digit mobile number';
+    if (!f.email.trim()) errs.email = 'Email is required';
+    else if (!EMAIL_RE.test(f.email.trim())) errs.email = 'Enter a valid email address';
+    if (!f.address.trim()) errs.address = 'Please enter your delivery address';
+    if (!f.pin.trim()) errs.pin = 'PIN code is required';
+    else if (!PIN_RE.test(f.pin.trim())) errs.pin = 'Enter a valid 6-digit PIN code';
+    if (!f.city.trim()) errs.city = 'City is required';
+    if (!f.state.trim()) errs.state = 'State is required';
+    state.formErrors = errs;
+    return Object.keys(errs).length === 0;
+  }
+
+  // ---------- free PIN code lookup (India Post API) ----------
+  var pinLookupTimer = null;
+  function setPinStatus(status, message){
+    state.pinLookup = { status: status, message: message };
+    var el = document.getElementById('pinStatus');
+    if (el){ el.className = 'pin-status ' + status; el.textContent = message; }
+  }
+  function lookupPincode(pin){
+    setPinStatus('loading', 'Looking up city & state…');
+    fetch(PINCODE_API_BASE + pin)
+      .then(function(res){ return res.json(); })
+      .then(function(data){
+        var entry = data && data[0];
+        if (entry && entry.Status === 'Success' && entry.PostOffice && entry.PostOffice.length){
+          var po = entry.PostOffice[0];
+          state.form.city = po.District || po.Name || '';
+          state.form.state = po.State || '';
+          delete state.formErrors.pin;
+          delete state.formErrors.city;
+          delete state.formErrors.state;
+          var cityEl = document.querySelector('[data-field="city"]');
+          var stateEl = document.querySelector('[data-field="state"]');
+          var pinEl = document.querySelector('[data-field="pin"]');
+          if (cityEl){ cityEl.value = state.form.city; cityEl.classList.remove('invalid'); }
+          if (stateEl){ stateEl.value = state.form.state; stateEl.classList.remove('invalid'); }
+          if (pinEl) pinEl.classList.remove('invalid');
+          ['err-city', 'err-state', 'err-pin'].forEach(function(id){
+            var e = document.getElementById(id);
+            if (e) e.textContent = '';
+          });
+          setPinStatus('success', 'Found: ' + state.form.city + ', ' + state.form.state);
+        } else {
+          setPinStatus('error', 'PIN code not found — please check and enter city/state manually');
+        }
+      })
+      .catch(function(){
+        setPinStatus('error', 'Could not verify PIN code — please enter city and state manually');
+      });
+  }
 
   // ---------- image zoom lens ----------
   function attachZoomLens(container, getImg){
@@ -1286,16 +1368,40 @@
     var leftHtml = '';
     if (co.step === 0){
       var f = state.form;
+      var errs = state.formErrors;
+      var pl = state.pinLookup;
       leftHtml =
         '<div class="form-col">' +
-          '<input class="form-input" data-field="fullName" placeholder="Full Name" value="' + esc(f.fullName) + '" />' +
-          '<input class="form-input" data-field="mobile" placeholder="Mobile Number" value="' + esc(f.mobile) + '" />' +
-          '<input class="form-input" data-field="email" placeholder="Email" value="' + esc(f.email) + '" />' +
-          '<input class="form-input" data-field="address" placeholder="Address" value="' + esc(f.address) + '" />' +
+          '<div class="field-group">' +
+            '<input class="form-input' + (errs.fullName ? ' invalid' : '') + '" data-field="fullName" placeholder="Full Name" value="' + esc(f.fullName) + '" />' +
+            '<div class="field-error" id="err-fullName">' + esc(errs.fullName || '') + '</div>' +
+          '</div>' +
+          '<div class="field-group">' +
+            '<input class="form-input' + (errs.mobile ? ' invalid' : '') + '" data-field="mobile" placeholder="Mobile Number" value="' + esc(f.mobile) + '" maxlength="10" inputmode="numeric" />' +
+            '<div class="field-error" id="err-mobile">' + esc(errs.mobile || '') + '</div>' +
+          '</div>' +
+          '<div class="field-group">' +
+            '<input class="form-input' + (errs.email ? ' invalid' : '') + '" data-field="email" placeholder="Email" value="' + esc(f.email) + '" />' +
+            '<div class="field-error" id="err-email">' + esc(errs.email || '') + '</div>' +
+          '</div>' +
+          '<div class="field-group">' +
+            '<input class="form-input' + (errs.address ? ' invalid' : '') + '" data-field="address" placeholder="Address" value="' + esc(f.address) + '" />' +
+            '<div class="field-error" id="err-address">' + esc(errs.address || '') + '</div>' +
+          '</div>' +
           '<div class="form-row3">' +
-            '<input class="form-input" data-field="city" placeholder="City" value="' + esc(f.city) + '" />' +
-            '<input class="form-input" data-field="state" placeholder="State" value="' + esc(f.state) + '" />' +
-            '<input class="form-input" data-field="pin" placeholder="PIN Code" value="' + esc(f.pin) + '" />' +
+            '<div class="field-group">' +
+              '<input class="form-input' + (errs.city ? ' invalid' : '') + '" data-field="city" placeholder="City" value="' + esc(f.city) + '" />' +
+              '<div class="field-error" id="err-city">' + esc(errs.city || '') + '</div>' +
+            '</div>' +
+            '<div class="field-group">' +
+              '<input class="form-input' + (errs.state ? ' invalid' : '') + '" data-field="state" placeholder="State" value="' + esc(f.state) + '" />' +
+              '<div class="field-error" id="err-state">' + esc(errs.state || '') + '</div>' +
+            '</div>' +
+            '<div class="field-group">' +
+              '<input class="form-input' + (errs.pin ? ' invalid' : '') + '" data-field="pin" placeholder="PIN Code" value="' + esc(f.pin) + '" maxlength="6" inputmode="numeric" />' +
+              '<div class="field-error" id="err-pin">' + esc(errs.pin || '') + '</div>' +
+              '<div class="pin-status ' + esc(pl.status || '') + '" id="pinStatus">' + esc(pl.message || '') + '</div>' +
+            '</div>' +
           '</div>' +
         '</div>';
     } else if (co.step === 1){
@@ -1381,7 +1487,25 @@
       n.addEventListener('click', function(){ selectPayment(parseInt(n.getAttribute('data-i'), 10)); });
     });
     Array.prototype.forEach.call(host.querySelectorAll('.form-input'), function(n){
-      n.addEventListener('input', function(){ setField(n.getAttribute('data-field'), n.value); });
+      var field = n.getAttribute('data-field');
+      n.addEventListener('input', function(){
+        setField(field, n.value);
+        if (state.formErrors[field]){
+          delete state.formErrors[field];
+          n.classList.remove('invalid');
+          var errEl = document.getElementById('err-' + field);
+          if (errEl) errEl.textContent = '';
+        }
+        if (field === 'pin'){
+          clearTimeout(pinLookupTimer);
+          var val = n.value.trim();
+          if (PIN_RE.test(val)){
+            pinLookupTimer = setTimeout(function(){ lookupPincode(val); }, 500);
+          } else {
+            setPinStatus('idle', '');
+          }
+        }
+      });
     });
   }
 

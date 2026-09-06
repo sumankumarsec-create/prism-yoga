@@ -309,6 +309,7 @@
           </div>
         </div>
         <button class="icon-btn" type="button" aria-label="Search">&#128269;</button>
+        <a class="icon-btn" href="orders.html" aria-label="My Orders" title="My Orders">&#128230;</a>
         <div class="icon-wrap" id="wishlistToggle" role="button" tabindex="0" aria-label="Open wishlist">
           <span class="icon-btn" style="cursor:pointer;">&#9825;</span>
           <span class="badge" id="wishlistBadge" hidden>0</span>
@@ -1432,7 +1433,7 @@
           '<div class="confirm-ship">Shipping to ' + esc(f2.address) + ', ' + esc(f2.city) + ', ' + esc(f2.state) + ' ' + esc(f2.pin) + '</div>' +
           '<div class="confirm-actions">' +
             '<button type="button" class="btn-solid" style="flex:none;" data-role="close-checkout">Continue Shopping</button>' +
-            '<button type="button" class="btn-outline">Track Order</button>' +
+                        '<button type="button" class="btn-outline" data-role="track-order">Track Order</button>' +
           '</div>' +
         '</div>';
     }
@@ -1480,6 +1481,8 @@
     if (backBtn) backBtn.addEventListener('click', checkoutBack);
     var nextBtn = host.querySelector('[data-role="next"]');
     if (nextBtn) nextBtn.addEventListener('click', checkoutNext);
+    var trackOrderBtn = host.querySelector('[data-role="track-order"]');
+    if (trackOrderBtn) trackOrderBtn.addEventListener('click', function(){ window.location.href = 'orders.html'; });
     Array.prototype.forEach.call(host.querySelectorAll('[data-role="delivery"]'), function(n){
       n.addEventListener('click', function(){ selectDelivery(parseInt(n.getAttribute('data-i'), 10)); });
     });

@@ -105,6 +105,22 @@
   @keyframes spin{ to{ transform:rotate(360deg); } }
   @media (prefers-reduced-motion:reduce){ .spinner{ animation:none; } }
 
+  /* OTP email/mobile auth */
+  .divider-row{ display:flex; align-items:center; gap:12px; margin:20px 0; }
+  .divider-row .line{ flex:1; height:1px; background:var(--border-warm); }
+  .divider-row .txt{ font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:0.06em; }
+  .btn-outline{ background:#fff; color:var(--ink); border:1px solid var(--border-warm); border-radius:999px; padding:12px 26px; font-size:13.5px; font-weight:600; cursor:pointer; font-family:inherit; letter-spacing:0.01em; }
+  .btn-outline:hover{ border-color:var(--sage); color:var(--sage); }
+  .otp-mode-switch{ font-size:12.5px; color:var(--muted-warm); margin-top:14px; }
+  .otp-sent-note{ font-size:13px; color:var(--muted-warm); margin-bottom:18px; background:#fff; border:1px solid var(--border-warm); border-radius:8px; padding:12px 14px; }
+  .otp-digit-input{ letter-spacing:0.4em; font-size:20px; text-align:center; font-variant-numeric:tabular-nums; }
+  .field-success{ font-size:12px; color:var(--sage); margin-top:6px; min-height:14px; }
+  .btn-link-inline{ background:none; border:none; color:var(--sage); font-size:12.5px; font-weight:600; cursor:pointer; font-family:inherit; padding:0; text-decoration:underline; }
+  .btn-link-inline:disabled{ color:var(--muted); cursor:default; text-decoration:none; }
+  .agree-row{ display:flex; align-items:flex-start; gap:9px; font-size:12.5px; color:var(--muted-warm); line-height:1.6; margin-bottom:18px; cursor:pointer; }
+  .agree-row input{ margin-top:2px; width:15px; height:15px; accent-color:var(--sage); flex-shrink:0; cursor:pointer; }
+  .agree-row a{ color:var(--sage); text-decoration:underline; }
+
   /* footer */
   footer{ background:var(--bg-alt); padding:56px 0 28px; margin-top:20px; }
   .footer-grid{ display:grid; grid-template-columns:1.4fr 1fr 1fr 1fr; gap:32px; }
@@ -143,6 +159,72 @@
         <div class="lookup-title">Sign in to continue</div>
         <div class="lookup-body">We use your Google account only to confirm it's really you — we never post anything or read your inbox.</div>
         <div id="googleBtnContainer"></div>
+
+        <div class="divider-row"><div class="line"></div><div class="txt">or</div><div class="line"></div></div>
+        <button type="button" class="btn-outline" id="showOtpPanelBtn">Continue with Email or Mobile</button>
+
+        <div id="otpAuthPanel" hidden style="margin-top:22px;">
+
+          <div id="otpRequestStep">
+            <div id="otpLoginFields">
+              <div class="field-row">
+                <label class="field-label" for="otpLoginEmail">Email Address</label>
+                <input class="field-input" id="otpLoginEmail" placeholder="you@email.com" autocomplete="email" />
+              </div>
+              <div class="field-row">
+                <label class="field-label" for="otpLoginMobile">Mobile Number</label>
+                <input class="field-input" id="otpLoginMobile" placeholder="10-digit mobile number" maxlength="15" inputmode="tel" autocomplete="tel" />
+                <div class="field-error" id="otpLoginError"></div>
+              </div>
+              <div class="lookup-note" style="margin-top:0;margin-bottom:16px;">Enter either one — we'll send a login code to the email on your account.</div>
+              <button type="button" class="btn-solid" id="otpLoginSendBtn">Sign In</button>
+              <div class="otp-mode-switch">New here? <button type="button" class="btn-link-inline" id="showRegisterBtn">Create an account</button></div>
+            </div>
+
+            <div id="otpRegisterFields" hidden>
+              <div class="field-row">
+                <label class="field-label" for="otpRegFirstName">First Name</label>
+                <input class="field-input" id="otpRegFirstName" placeholder="First name" autocomplete="given-name" />
+              </div>
+              <div class="field-row">
+                <label class="field-label" for="otpRegLastName">Last Name</label>
+                <input class="field-input" id="otpRegLastName" placeholder="Last name" autocomplete="family-name" />
+              </div>
+              <div class="field-row">
+                <label class="field-label" for="otpRegEmail">Email Address</label>
+                <input class="field-input" id="otpRegEmail" placeholder="you@email.com" autocomplete="email" />
+              </div>
+              <div class="field-row">
+                <label class="field-label" for="otpRegMobile">Mobile Number</label>
+                <input class="field-input" id="otpRegMobile" placeholder="10-digit mobile number" maxlength="15" inputmode="tel" autocomplete="tel" />
+                <div class="field-error" id="otpRegError"></div>
+              </div>
+              <div class="lookup-note" style="margin-top:0;margin-bottom:16px;">We'll always send your login code to this email — even if you sign in with your mobile number next time.</div>
+              <label class="agree-row">
+                <input type="checkbox" id="otpRegAgree" />
+                <span>I agree to the <a href="privacy-policy.html" target="_blank" rel="noopener">Privacy Policy &amp; Terms</a></span>
+              </label>
+              <button type="button" class="btn-solid" id="otpRegisterSendBtn" disabled>Sign Up</button>
+              <div class="otp-mode-switch">Already registered? <button type="button" class="btn-link-inline" id="showLoginBtn">Sign in instead</button></div>
+            </div>
+          </div>
+
+          <div id="otpVerifyStep" hidden>
+            <div class="otp-sent-note">We sent a 6-digit code to <b id="otpMaskedEmail"></b>. It expires in 10 minutes.</div>
+            <div class="field-row">
+              <label class="field-label" for="otpCodeInput">Verification Code</label>
+              <input class="field-input otp-digit-input" id="otpCodeInput" placeholder="000000" maxlength="6" inputmode="numeric" autocomplete="one-time-code" />
+              <div class="field-error" id="otpVerifyError"></div>
+            </div>
+            <button type="button" class="btn-solid" id="otpVerifyBtn">Verify &amp; Continue</button>
+            <div class="otp-mode-switch">
+              <button type="button" class="btn-link-inline" id="otpResendBtn">Resend code</button>
+              &nbsp;&middot;&nbsp;
+              <button type="button" class="btn-link-inline" id="otpBackBtn">Use a different email/mobile</button>
+            </div>
+          </div>
+
+        </div>
       </div>
 
       <div id="mobileStep" hidden>
@@ -208,6 +290,7 @@
   var ORDERS_WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbyZ2m2TLEqDoDxNc7PV7sjIC8uzMxgRPMXOQVuIZq6Ez8WciQzl-hvnIVp7y4SHIs8hTQ/exec';
 
   var state = { user: null };
+  var otpState = { pendingIdentifier: null, cooldownTimer: null };
 
   function esc(s){
     return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
@@ -231,7 +314,9 @@
     var chip = document.getElementById('signedChip');
     if (state.user){
       chip.hidden = false;
-      document.getElementById('signedAvatar').src = state.user.picture || '';
+      var avatar = document.getElementById('signedAvatar');
+      if (state.user.picture){ avatar.src = state.user.picture; avatar.hidden = false; }
+      else { avatar.hidden = true; }
       document.getElementById('signedName').textContent = state.user.name || state.user.email || 'you';
     }
   }
@@ -290,6 +375,168 @@
 
   function setMobileError(msg){
     document.getElementById('mobileError').textContent = msg || '';
+  }
+
+  /* ---- Email/Mobile OTP auth ---- */
+
+  function isValidEmailClient(v){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); }
+  function digitsOnly(v){ return String(v || '').replace(/\D/g, ''); }
+
+  function otpSetLoginError(msg){ document.getElementById('otpLoginError').textContent = msg || ''; }
+  function otpSetRegError(msg){ document.getElementById('otpRegError').textContent = msg || ''; }
+  function otpSetVerifyError(msg){ document.getElementById('otpVerifyError').textContent = msg || ''; }
+
+  function showOtpPanel(){
+    document.getElementById('showOtpPanelBtn').hidden = true;
+    document.getElementById('otpAuthPanel').hidden = false;
+  }
+
+  function showOtpLoginFields(){
+    otpSetRegError('');
+    document.getElementById('otpRegisterFields').hidden = true;
+    document.getElementById('otpLoginFields').hidden = false;
+  }
+
+  function showOtpRegisterFields(){
+    otpSetLoginError('');
+    document.getElementById('otpLoginFields').hidden = true;
+    document.getElementById('otpRegisterFields').hidden = false;
+  }
+
+  function showOtpRequestStep(){
+    stopOtpCooldown();
+    document.getElementById('otpVerifyStep').hidden = true;
+    document.getElementById('otpRequestStep').hidden = false;
+  }
+
+  function showOtpVerifyStep(maskedEmail){
+    document.getElementById('otpRequestStep').hidden = true;
+    document.getElementById('otpVerifyStep').hidden = false;
+    document.getElementById('otpMaskedEmail').textContent = maskedEmail || 'your email';
+    otpSetVerifyError('');
+    var codeInput = document.getElementById('otpCodeInput');
+    codeInput.value = '';
+    codeInput.focus();
+    startOtpCooldown();
+  }
+
+  function stopOtpCooldown(){
+    if (otpState.cooldownTimer){ clearInterval(otpState.cooldownTimer); otpState.cooldownTimer = null; }
+    var btn = document.getElementById('otpResendBtn');
+    btn.disabled = false;
+    btn.textContent = 'Resend code';
+  }
+
+  function startOtpCooldown(seconds){
+    var remaining = seconds || 30;
+    var btn = document.getElementById('otpResendBtn');
+    btn.disabled = true;
+    btn.textContent = 'Resend code (' + remaining + 's)';
+    if (otpState.cooldownTimer) clearInterval(otpState.cooldownTimer);
+    otpState.cooldownTimer = setInterval(function(){
+      remaining -= 1;
+      if (remaining <= 0){ stopOtpCooldown(); return; }
+      btn.textContent = 'Resend code (' + remaining + 's)';
+    }, 1000);
+  }
+
+  function otpRequestUrl(identifier){
+    return ORDERS_WEBAPP_URL + '?mode=requestOtp&identifier=' + encodeURIComponent(identifier);
+  }
+
+  function sendLoginOtp(){
+    var email = document.getElementById('otpLoginEmail').value.trim();
+    var mobile = digitsOnly(document.getElementById('otpLoginMobile').value);
+    var raw = email || mobile;
+    if (!raw){ otpSetLoginError('Enter the email or mobile number you registered with.'); return; }
+    if (email && !isValidEmailClient(email)){ otpSetLoginError('Enter a valid email address, or leave it blank and use your mobile number.'); return; }
+    otpSetLoginError('');
+    var btn = document.getElementById('otpLoginSendBtn');
+    btn.disabled = true;
+    fetch(otpRequestUrl(raw))
+      .then(function(res){ return res.json(); })
+      .then(function(json){
+        btn.disabled = false;
+        if (!json || json.ok !== true){
+          if (json && json.error === 'not_found'){ otpSetLoginError('No account found for that email or mobile number. Try creating an account instead.'); }
+          else if (json && json.error === 'cooldown'){ otpSetLoginError('Please wait a few seconds before requesting another code.'); }
+          else { otpSetLoginError('Something went wrong. Please try again.'); }
+          return;
+        }
+        otpState.pendingIdentifier = raw;
+        showOtpVerifyStep(json.maskedEmail);
+      })
+      .catch(function(){ btn.disabled = false; otpSetLoginError('Something went wrong. Please try again.'); });
+  }
+
+  function sendRegisterOtp(){
+    var firstName = document.getElementById('otpRegFirstName').value.trim();
+    var lastName = document.getElementById('otpRegLastName').value.trim();
+    var email = document.getElementById('otpRegEmail').value.trim();
+    var mobile = digitsOnly(document.getElementById('otpRegMobile').value);
+    var agreed = document.getElementById('otpRegAgree').checked;
+    if (!firstName || !lastName){ otpSetRegError('Enter your first and last name.'); return; }
+    if (!isValidEmailClient(email)){ otpSetRegError('Enter a valid email address.'); return; }
+    if (mobile.length < 10){ otpSetRegError('Enter a valid 10-digit mobile number.'); return; }
+    if (!agreed){ otpSetRegError('Please agree to the Privacy Policy & Terms to continue.'); return; }
+    otpSetRegError('');
+    var btn = document.getElementById('otpRegisterSendBtn');
+    btn.disabled = true;
+    var url = ORDERS_WEBAPP_URL + '?mode=register&firstName=' + encodeURIComponent(firstName) + '&lastName=' + encodeURIComponent(lastName) + '&email=' + encodeURIComponent(email) + '&mobile=' + encodeURIComponent(mobile);
+    fetch(url)
+      .then(function(res){ return res.json(); })
+      .then(function(json){
+        btn.disabled = agreed ? false : true;
+        if (!json || json.ok !== true){
+          if (json && json.error === 'email_already_registered'){ otpSetRegError('This email is already registered. Try logging in instead.'); }
+          else if (json && json.error === 'mobile_already_registered'){ otpSetRegError('This mobile number is already registered. Try logging in instead.'); }
+          else { otpSetRegError('Something went wrong. Please try again.'); }
+          return;
+        }
+        otpState.pendingIdentifier = email;
+        showOtpVerifyStep(json.maskedEmail);
+      })
+      .catch(function(){ btn.disabled = false; otpSetRegError('Something went wrong. Please try again.'); });
+  }
+
+  function resendOtp(){
+    if (!otpState.pendingIdentifier) return;
+    fetch(otpRequestUrl(otpState.pendingIdentifier))
+      .then(function(res){ return res.json(); })
+      .then(function(json){
+        if (json && json.ok === true){ startOtpCooldown(); }
+        else if (json && json.error === 'cooldown'){ startOtpCooldown(json.retryAfterSeconds); }
+      })
+      .catch(function(){});
+  }
+
+  function verifyOtpCode(){
+    var code = digitsOnly(document.getElementById('otpCodeInput').value);
+    if (code.length !== 6){ otpSetVerifyError('Enter the 6-digit code from your email.'); return; }
+    if (!otpState.pendingIdentifier) return;
+    otpSetVerifyError('');
+    var btn = document.getElementById('otpVerifyBtn');
+    btn.disabled = true;
+    var url = ORDERS_WEBAPP_URL + '?mode=verifyOtp&identifier=' + encodeURIComponent(otpState.pendingIdentifier) + '&otp=' + encodeURIComponent(code);
+    fetch(url)
+      .then(function(res){ return res.json(); })
+      .then(function(json){
+        btn.disabled = false;
+        if (!json || json.ok !== true){
+          if (json && json.error === 'expired'){ otpSetVerifyError('This code has expired. Request a new one.'); }
+          else if (json && json.error === 'invalid_otp'){ otpSetVerifyError('Incorrect code. Please check and try again.'); }
+          else { otpSetVerifyError('Something went wrong. Please try again.'); }
+          return;
+        }
+        stopOtpCooldown();
+        var fullName = [json.firstName, json.lastName].filter(Boolean).join(' ').trim();
+        state.user = { name: fullName || null, email: json.email, mobile: json.mobile, picture: null };
+        try { localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(state.user)); } catch (e){}
+        showMobileStep();
+        document.getElementById('mobileInput').value = json.mobile || '';
+        viewOrders();
+      })
+      .catch(function(){ btn.disabled = false; otpSetVerifyError('Something went wrong. Please try again.'); });
   }
 
   function renderResults(orders){
@@ -377,6 +624,30 @@
   document.getElementById('viewOrdersBtn').addEventListener('click', viewOrders);
   document.getElementById('mobileInput').addEventListener('keydown', function(e){
     if (e.key === 'Enter') viewOrders();
+  });
+
+  document.getElementById('showOtpPanelBtn').addEventListener('click', showOtpPanel);
+  document.getElementById('showRegisterBtn').addEventListener('click', showOtpRegisterFields);
+  document.getElementById('showLoginBtn').addEventListener('click', showOtpLoginFields);
+  document.getElementById('otpLoginSendBtn').addEventListener('click', sendLoginOtp);
+  document.getElementById('otpRegisterSendBtn').addEventListener('click', sendRegisterOtp);
+  document.getElementById('otpVerifyBtn').addEventListener('click', verifyOtpCode);
+  document.getElementById('otpResendBtn').addEventListener('click', resendOtp);
+  document.getElementById('otpBackBtn').addEventListener('click', showOtpRequestStep);
+  document.getElementById('otpLoginEmail').addEventListener('keydown', function(e){
+    if (e.key === 'Enter') sendLoginOtp();
+  });
+  document.getElementById('otpLoginMobile').addEventListener('keydown', function(e){
+    if (e.key === 'Enter') sendLoginOtp();
+  });
+  document.getElementById('otpRegMobile').addEventListener('keydown', function(e){
+    if (e.key === 'Enter') sendRegisterOtp();
+  });
+  document.getElementById('otpCodeInput').addEventListener('keydown', function(e){
+    if (e.key === 'Enter') verifyOtpCode();
+  });
+  document.getElementById('otpRegAgree').addEventListener('change', function(e){
+    document.getElementById('otpRegisterSendBtn').disabled = !e.target.checked;
   });
 
   initGoogleAuth();

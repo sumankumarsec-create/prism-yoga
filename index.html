@@ -63,6 +63,35 @@
   .user-name{ font-size:13px; font-weight:500; max-width:120px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .signout-btn{ background:none; border:none; color:var(--muted); cursor:pointer; font-size:12px; text-decoration:underline; font-family:inherit; padding:0; }
   .my-orders-link{ font-size:13px; font-weight:600; white-space:nowrap; padding-left:22px; border-left:1px solid var(--border); }
+
+  /* ---------- register / sign-in popover ---------- */
+  .auth-trigger-wrap{ position:relative; }
+  .auth-trigger-btn{ background:none; border:1px solid var(--ink-deep); border-radius:999px; padding:8px 18px; font-size:12.5px; font-weight:600; cursor:pointer; font-family:inherit; color:var(--ink-deep); white-space:nowrap; }
+  .auth-trigger-btn:hover{ border-color:var(--sage); color:var(--sage); }
+  .auth-popover{ position:absolute; top:calc(100% + 14px); right:0; width:330px; background:#fff; border:1px solid var(--border-warm); border-radius:12px; box-shadow:0 16px 40px rgba(0,0,0,0.16); padding:22px 20px; z-index:90; }
+  .auth-popover-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
+  .auth-popover-title{ font-size:15px; font-weight:600; }
+  .auth-popover-close{ background:none; border:none; font-size:20px; line-height:1; cursor:pointer; color:var(--muted); padding:0 0 0 12px; }
+  .auth-popover-close:hover{ color:var(--ink); }
+  .auth-popover .field-group{ margin-bottom:14px; }
+  .auth-popover .form-input{ border-radius:8px; }
+  .auth-popover .btn-solid{ width:100%; border-radius:999px; text-align:center; }
+  .auth-popover .btn-solid:disabled{ opacity:0.5; cursor:default; }
+  .auth-divider{ display:flex; align-items:center; gap:10px; margin:16px 0; }
+  .auth-divider .line{ flex:1; height:1px; background:var(--border-warm); }
+  .auth-divider .txt{ font-size:10.5px; color:var(--muted); text-transform:uppercase; letter-spacing:0.06em; }
+  .auth-note{ font-size:11.5px; color:var(--muted); line-height:1.6; margin:-6px 0 14px; }
+  .auth-switch{ font-size:12px; color:var(--muted); margin-top:14px; text-align:center; }
+  .auth-link-btn{ background:none; border:none; color:var(--sage); font-size:12px; font-weight:600; cursor:pointer; font-family:inherit; padding:0; text-decoration:underline; }
+  .auth-link-btn:disabled{ color:var(--muted); cursor:default; text-decoration:none; }
+  .auth-agree{ display:flex; align-items:flex-start; gap:8px; font-size:11.5px; color:var(--muted); line-height:1.5; margin-bottom:16px; cursor:pointer; }
+  .auth-agree input{ margin-top:2px; width:14px; height:14px; accent-color:var(--sage); flex-shrink:0; cursor:pointer; }
+  .auth-agree a{ color:var(--sage); text-decoration:underline; }
+  .auth-otp-input{ letter-spacing:0.35em; font-size:19px; text-align:center; font-variant-numeric:tabular-nums; }
+  .auth-sent-note{ font-size:12px; color:var(--muted-warm); background:var(--bg-panel); border:1px solid var(--border-warm); border-radius:8px; padding:10px 12px; margin-bottom:16px; line-height:1.6; }
+  @media (max-width:480px){
+    .auth-popover{ position:fixed; top:auto; left:16px; right:16px; bottom:16px; width:auto; max-height:80vh; overflow-y:auto; }
+  }
   .icon-btn{ font-size:16px; cursor:pointer; background:none; border:none; color:var(--ink); padding:0; line-height:1; }
   .icon-wrap{ position:relative; cursor:pointer; }
   .badge{ position:absolute; top:-8px; right:-10px; background:var(--sage); color:#fff; font-size:10px; width:16px; height:16px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:600; }
@@ -302,11 +331,74 @@
       <div class="logo">&#127807; Prism Yoga</div>
       <div class="header-actions">
         <div class="auth-area" id="authArea">
-          <div id="googleBtnContainer"></div>
           <div class="user-chip" id="userChip" hidden>
             <img class="user-avatar" id="userAvatar" alt="" />
             <span class="user-name" id="userName"></span>
             <button type="button" class="signout-btn" id="signOutBtn">Sign out</button>
+          </div>
+          <div class="auth-trigger-wrap" id="authTriggerWrap">
+            <button type="button" class="auth-trigger-btn" id="authTriggerBtn" aria-expanded="false">Register / Sign In</button>
+            <div class="auth-popover" id="authPopover" hidden>
+              <div class="auth-popover-head">
+                <div class="auth-popover-title" id="authPopoverTitle">Sign in to your account</div>
+                <button type="button" class="auth-popover-close" id="authPopoverClose" aria-label="Close">&times;</button>
+              </div>
+
+              <div id="authRequestStep">
+                <div id="googleBtnContainer"></div>
+                <div class="auth-divider"><div class="line"></div><div class="txt">or</div><div class="line"></div></div>
+
+                <div id="authLoginFields">
+                  <div class="field-group">
+                    <input class="form-input" id="authLoginEmail" placeholder="Email Address" autocomplete="email" />
+                  </div>
+                  <div class="field-group">
+                    <input class="form-input" id="authLoginMobile" placeholder="Mobile Number" maxlength="15" inputmode="tel" autocomplete="tel" />
+                    <div class="field-error" id="authLoginError"></div>
+                  </div>
+                  <div class="auth-note">Enter either one — we'll send a login code to the email on your account.</div>
+                  <button type="button" class="btn-solid" id="authLoginSendBtn">Sign In</button>
+                  <div class="auth-switch">New here? <button type="button" class="auth-link-btn" id="authShowRegisterBtn">Create an account</button></div>
+                </div>
+
+                <div id="authRegisterFields" hidden>
+                  <div class="field-group">
+                    <input class="form-input" id="authRegFirstName" placeholder="First Name" autocomplete="given-name" />
+                  </div>
+                  <div class="field-group">
+                    <input class="form-input" id="authRegLastName" placeholder="Last Name" autocomplete="family-name" />
+                  </div>
+                  <div class="field-group">
+                    <input class="form-input" id="authRegEmail" placeholder="Email Address" autocomplete="email" />
+                  </div>
+                  <div class="field-group">
+                    <input class="form-input" id="authRegMobile" placeholder="Mobile Number" maxlength="15" inputmode="tel" autocomplete="tel" />
+                    <div class="field-error" id="authRegError"></div>
+                  </div>
+                  <div class="auth-note">We'll always send your login code to this email — even if you sign in with your mobile number next time.</div>
+                  <label class="auth-agree">
+                    <input type="checkbox" id="authRegAgree" />
+                    <span>I agree to the <a href="privacy-policy.html" target="_blank" rel="noopener">Privacy Policy &amp; Terms</a></span>
+                  </label>
+                  <button type="button" class="btn-solid" id="authRegSendBtn" disabled>Sign Up</button>
+                  <div class="auth-switch">Already registered? <button type="button" class="auth-link-btn" id="authShowLoginBtn">Sign in instead</button></div>
+                </div>
+              </div>
+
+              <div id="authVerifyStep" hidden>
+                <div class="auth-sent-note">We sent a 6-digit code to <b id="authMaskedEmail"></b>. It expires in 10 minutes.</div>
+                <div class="field-group">
+                  <input class="form-input auth-otp-input" id="authCodeInput" placeholder="000000" maxlength="6" inputmode="numeric" autocomplete="one-time-code" />
+                  <div class="field-error" id="authVerifyError"></div>
+                </div>
+                <button type="button" class="btn-solid" id="authVerifyBtn">Verify &amp; Continue</button>
+                <div class="auth-switch">
+                  <button type="button" class="auth-link-btn" id="authResendBtn">Resend code</button>
+                  &nbsp;&middot;&nbsp;
+                  <button type="button" class="auth-link-btn" id="authBackBtn">Use a different email/mobile</button>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
         <a class="my-orders-link" href="orders.html">My Orders</a>
@@ -1594,16 +1686,16 @@
   }
 
   function renderAuthArea(){
-    var btnContainer = document.getElementById('googleBtnContainer');
+    var triggerWrap = document.getElementById('authTriggerWrap');
     var chip = document.getElementById('userChip');
-    if (!btnContainer || !chip) return;
+    if (!triggerWrap || !chip) return;
     if (state.user){
-      btnContainer.hidden = true;
+      triggerWrap.hidden = true;
       chip.hidden = false;
       document.getElementById('userAvatar').src = state.user.picture || '';
       document.getElementById('userName').textContent = state.user.name || state.user.email || 'Signed in';
     } else {
-      btnContainer.hidden = false;
+      triggerWrap.hidden = false;
       chip.hidden = true;
     }
   }
@@ -1614,6 +1706,7 @@
     state.user = { name: payload.name, email: payload.email, picture: payload.picture };
     try { localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(state.user)); } catch (e){}
     renderAuthArea();
+    closeAuthPopover();
     showToast('Signed in as ' + (payload.given_name || payload.name || payload.email));
   }
 
@@ -1646,7 +1739,7 @@
       });
       if (!state.user){
         google.accounts.id.renderButton(document.getElementById('googleBtnContainer'), {
-          theme: 'outline', size: 'medium', shape: 'pill', text: 'signin_with'
+          theme: 'outline', size: 'medium', shape: 'pill', text: 'signin_with', width: 290
         });
       }
       return true;
@@ -1660,6 +1753,221 @@
       }, 250);
     }
   }
+
+  /* ---------- Register / Sign In popover (email + mobile OTP) ---------- */
+  var authOtpState = { pendingIdentifier: null, cooldownTimer: null };
+
+  function isValidEmailClient(v){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); }
+  function authDigitsOnly(v){ return String(v || '').replace(/\D/g, ''); }
+
+  function authSetLoginError(msg){ document.getElementById('authLoginError').textContent = msg || ''; }
+  function authSetRegError(msg){ document.getElementById('authRegError').textContent = msg || ''; }
+  function authSetVerifyError(msg){ document.getElementById('authVerifyError').textContent = msg || ''; }
+
+  function onAuthOutsideClick(e){
+    var wrap = document.getElementById('authTriggerWrap');
+    if (wrap && !wrap.contains(e.target)) closeAuthPopover();
+  }
+  function onAuthEscKey(e){
+    if (e.key === 'Escape') closeAuthPopover();
+  }
+
+  function openAuthPopover(){
+    document.getElementById('authPopover').hidden = false;
+    document.getElementById('authTriggerBtn').setAttribute('aria-expanded', 'true');
+    document.addEventListener('click', onAuthOutsideClick, true);
+    document.addEventListener('keydown', onAuthEscKey, true);
+  }
+  function closeAuthPopover(){
+    var pop = document.getElementById('authPopover');
+    if (!pop || pop.hidden) return;
+    pop.hidden = true;
+    document.getElementById('authTriggerBtn').setAttribute('aria-expanded', 'false');
+    document.removeEventListener('click', onAuthOutsideClick, true);
+    document.removeEventListener('keydown', onAuthEscKey, true);
+  }
+  function toggleAuthPopover(){
+    var pop = document.getElementById('authPopover');
+    if (pop.hidden) openAuthPopover(); else closeAuthPopover();
+  }
+
+  function authShowLoginFields(){
+    authSetRegError('');
+    document.getElementById('authRegisterFields').hidden = true;
+    document.getElementById('authLoginFields').hidden = false;
+    document.getElementById('authPopoverTitle').textContent = 'Sign in to your account';
+  }
+  function authShowRegisterFields(){
+    authSetLoginError('');
+    document.getElementById('authLoginFields').hidden = true;
+    document.getElementById('authRegisterFields').hidden = false;
+    document.getElementById('authPopoverTitle').textContent = 'Create your account';
+  }
+  function authShowRequestStep(){
+    authStopCooldown();
+    document.getElementById('authVerifyStep').hidden = true;
+    document.getElementById('authRequestStep').hidden = false;
+  }
+  function authShowVerifyStep(maskedEmail){
+    document.getElementById('authRequestStep').hidden = true;
+    document.getElementById('authVerifyStep').hidden = false;
+    document.getElementById('authPopoverTitle').textContent = 'Enter your code';
+    document.getElementById('authMaskedEmail').textContent = maskedEmail || 'your email';
+    authSetVerifyError('');
+    var codeInput = document.getElementById('authCodeInput');
+    codeInput.value = '';
+    codeInput.focus();
+    authStartCooldown();
+  }
+  function authStopCooldown(){
+    if (authOtpState.cooldownTimer){ clearInterval(authOtpState.cooldownTimer); authOtpState.cooldownTimer = null; }
+    var btn = document.getElementById('authResendBtn');
+    if (!btn) return;
+    btn.disabled = false;
+    btn.textContent = 'Resend code';
+  }
+  function authStartCooldown(seconds){
+    var remaining = seconds || 30;
+    var btn = document.getElementById('authResendBtn');
+    btn.disabled = true;
+    btn.textContent = 'Resend code (' + remaining + 's)';
+    if (authOtpState.cooldownTimer) clearInterval(authOtpState.cooldownTimer);
+    authOtpState.cooldownTimer = setInterval(function(){
+      remaining -= 1;
+      if (remaining <= 0){ authStopCooldown(); return; }
+      btn.textContent = 'Resend code (' + remaining + 's)';
+    }, 1000);
+  }
+  function authOtpRequestUrl(identifier){
+    return ORDERS_WEBAPP_URL + '?mode=requestOtp&identifier=' + encodeURIComponent(identifier);
+  }
+  function authResetForms(){
+    ['authLoginEmail','authLoginMobile','authRegFirstName','authRegLastName','authRegEmail','authRegMobile','authCodeInput'].forEach(function(id){
+      var el = document.getElementById(id);
+      if (el) el.value = '';
+    });
+    document.getElementById('authRegAgree').checked = false;
+    document.getElementById('authRegSendBtn').disabled = true;
+    authSetLoginError(''); authSetRegError(''); authSetVerifyError('');
+    authShowRequestStep();
+    authShowLoginFields();
+  }
+  function authCompleteSignIn(user){
+    state.user = user;
+    try { localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(state.user)); } catch (e){}
+    renderAuthArea();
+    authStopCooldown();
+    closeAuthPopover();
+    authResetForms();
+    showToast('Signed in as ' + (user.name || user.email));
+  }
+
+  function authSendLoginOtp(){
+    var email = document.getElementById('authLoginEmail').value.trim();
+    var mobile = authDigitsOnly(document.getElementById('authLoginMobile').value);
+    var raw = email || mobile;
+    if (!raw){ authSetLoginError('Enter the email or mobile number you registered with.'); return; }
+    if (email && !isValidEmailClient(email)){ authSetLoginError('Enter a valid email address, or leave it blank and use your mobile number.'); return; }
+    authSetLoginError('');
+    var btn = document.getElementById('authLoginSendBtn');
+    btn.disabled = true;
+    fetch(authOtpRequestUrl(raw))
+      .then(function(res){ return res.json(); })
+      .then(function(json){
+        btn.disabled = false;
+        if (!json || json.ok !== true){
+          if (json && json.error === 'not_found'){ authSetLoginError('No account found for that email or mobile number. Try creating an account instead.'); }
+          else if (json && json.error === 'cooldown'){ authSetLoginError('Please wait a few seconds before requesting another code.'); }
+          else { authSetLoginError('Something went wrong. Please try again.'); }
+          return;
+        }
+        authOtpState.pendingIdentifier = raw;
+        authShowVerifyStep(json.maskedEmail);
+      })
+      .catch(function(){ btn.disabled = false; authSetLoginError('Something went wrong. Please try again.'); });
+  }
+
+  function authSendRegisterOtp(){
+    var firstName = document.getElementById('authRegFirstName').value.trim();
+    var lastName = document.getElementById('authRegLastName').value.trim();
+    var email = document.getElementById('authRegEmail').value.trim();
+    var mobile = authDigitsOnly(document.getElementById('authRegMobile').value);
+    var agreed = document.getElementById('authRegAgree').checked;
+    if (!firstName || !lastName){ authSetRegError('Enter your first and last name.'); return; }
+    if (!isValidEmailClient(email)){ authSetRegError('Enter a valid email address.'); return; }
+    if (mobile.length < 10){ authSetRegError('Enter a valid 10-digit mobile number.'); return; }
+    if (!agreed){ authSetRegError('Please agree to the Privacy Policy & Terms to continue.'); return; }
+    authSetRegError('');
+    var btn = document.getElementById('authRegSendBtn');
+    btn.disabled = true;
+    var url = ORDERS_WEBAPP_URL + '?mode=register&firstName=' + encodeURIComponent(firstName) + '&lastName=' + encodeURIComponent(lastName) + '&email=' + encodeURIComponent(email) + '&mobile=' + encodeURIComponent(mobile);
+    fetch(url)
+      .then(function(res){ return res.json(); })
+      .then(function(json){
+        btn.disabled = agreed ? false : true;
+        if (!json || json.ok !== true){
+          if (json && json.error === 'email_already_registered'){ authSetRegError('This email is already registered. Try logging in instead.'); }
+          else if (json && json.error === 'mobile_already_registered'){ authSetRegError('This mobile number is already registered. Try logging in instead.'); }
+          else { authSetRegError('Something went wrong. Please try again.'); }
+          return;
+        }
+        authOtpState.pendingIdentifier = email;
+        authShowVerifyStep(json.maskedEmail);
+      })
+      .catch(function(){ btn.disabled = false; authSetRegError('Something went wrong. Please try again.'); });
+  }
+
+  function authResendOtp(){
+    if (!authOtpState.pendingIdentifier) return;
+    fetch(authOtpRequestUrl(authOtpState.pendingIdentifier))
+      .then(function(res){ return res.json(); })
+      .then(function(json){
+        if (json && json.ok === true){ authStartCooldown(); }
+        else if (json && json.error === 'cooldown'){ authStartCooldown(json.retryAfterSeconds); }
+      })
+      .catch(function(){});
+  }
+
+  function authVerifyOtpCode(){
+    var code = authDigitsOnly(document.getElementById('authCodeInput').value);
+    if (code.length !== 6){ authSetVerifyError('Enter the 6-digit code from your email.'); return; }
+    if (!authOtpState.pendingIdentifier) return;
+    authSetVerifyError('');
+    var btn = document.getElementById('authVerifyBtn');
+    btn.disabled = true;
+    var url = ORDERS_WEBAPP_URL + '?mode=verifyOtp&identifier=' + encodeURIComponent(authOtpState.pendingIdentifier) + '&otp=' + encodeURIComponent(code);
+    fetch(url)
+      .then(function(res){ return res.json(); })
+      .then(function(json){
+        btn.disabled = false;
+        if (!json || json.ok !== true){
+          if (json && json.error === 'expired'){ authSetVerifyError('This code has expired. Request a new one.'); }
+          else if (json && json.error === 'invalid_otp'){ authSetVerifyError('Incorrect code. Please check and try again.'); }
+          else { authSetVerifyError('Something went wrong. Please try again.'); }
+          return;
+        }
+        var fullName = [json.firstName, json.lastName].filter(Boolean).join(' ').trim();
+        authCompleteSignIn({ name: fullName || null, email: json.email, mobile: json.mobile, picture: null });
+      })
+      .catch(function(){ btn.disabled = false; authSetVerifyError('Something went wrong. Please try again.'); });
+  }
+
+  var authTriggerBtnEl = document.getElementById('authTriggerBtn');
+  if (authTriggerBtnEl) authTriggerBtnEl.addEventListener('click', function(e){ e.stopPropagation(); toggleAuthPopover(); });
+  var authPopoverCloseEl = document.getElementById('authPopoverClose');
+  if (authPopoverCloseEl) authPopoverCloseEl.addEventListener('click', closeAuthPopover);
+  document.getElementById('authShowRegisterBtn').addEventListener('click', authShowRegisterFields);
+  document.getElementById('authShowLoginBtn').addEventListener('click', authShowLoginFields);
+  document.getElementById('authLoginSendBtn').addEventListener('click', authSendLoginOtp);
+  document.getElementById('authRegSendBtn').addEventListener('click', authSendRegisterOtp);
+  document.getElementById('authVerifyBtn').addEventListener('click', authVerifyOtpCode);
+  document.getElementById('authResendBtn').addEventListener('click', authResendOtp);
+  document.getElementById('authBackBtn').addEventListener('click', authShowRequestStep);
+  document.getElementById('authLoginEmail').addEventListener('keydown', function(e){ if (e.key === 'Enter') authSendLoginOtp(); });
+  document.getElementById('authLoginMobile').addEventListener('keydown', function(e){ if (e.key === 'Enter') authSendLoginOtp(); });
+  document.getElementById('authRegMobile').addEventListener('keydown', function(e){ if (e.key === 'Enter') authSendRegisterOtp(); });
+  document.getElementById('authCodeInput').addEventListener('keydown', function(e){ if (e.key === 'Enter') authVerifyOtpCode(); });
+  document.getElementById('authRegAgree').addEventListener('change', function(e){ document.getElementById('authRegSendBtn').disabled = !e.target.checked; });
 
   loadCartState();
   renderAll();

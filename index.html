@@ -62,6 +62,7 @@
   .user-avatar{ width:28px; height:28px; border-radius:50%; object-fit:cover; background:var(--bg-swatch-warm); }
   .user-name{ font-size:13px; font-weight:500; max-width:120px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .signout-btn{ background:none; border:none; color:var(--muted); cursor:pointer; font-size:12px; text-decoration:underline; font-family:inherit; padding:0; }
+  .my-orders-link{ font-size:13px; font-weight:600; white-space:nowrap; padding-left:22px; border-left:1px solid var(--border); }
   .icon-btn{ font-size:16px; cursor:pointer; background:none; border:none; color:var(--ink); padding:0; line-height:1; }
   .icon-wrap{ position:relative; cursor:pointer; }
   .badge{ position:absolute; top:-8px; right:-10px; background:var(--sage); color:#fff; font-size:10px; width:16px; height:16px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:600; }
@@ -308,8 +309,8 @@
             <button type="button" class="signout-btn" id="signOutBtn">Sign out</button>
           </div>
         </div>
+        <a class="my-orders-link" href="orders.html">My Orders</a>
         <button class="icon-btn" type="button" aria-label="Search">&#128269;</button>
-        <a class="icon-btn" href="orders.html" aria-label="My Orders" title="My Orders">&#128230;</a>
         <div class="icon-wrap" id="wishlistToggle" role="button" tabindex="0" aria-label="Open wishlist">
           <span class="icon-btn" style="cursor:pointer;">&#9825;</span>
           <span class="badge" id="wishlistBadge" hidden>0</span>

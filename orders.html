@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>My Orders — Prism Yoga</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Spectral:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<style>
+  :root{
+    --ink:#1F1F1F;
+    --ink-deep:#2A2924;
+    --sage:#4F7C6B;
+    --sage-soft:#7C8B6F;
+    --gold:#F5A623;
+    --border:#ECECEC;
+    --border-warm:#E6E2D8;
+    --muted:#8A877C;
+    --muted-soft:#A6A398;
+    --muted-warm:#5B5A52;
+    --bg:#fff;
+    --bg-alt:#F7F6F2;
+    --bg-panel:#F7F5EF;
+    --bg-swatch-warm:#EFEBE0;
+    --danger:#B3492E;
+  }
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; }
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'Poppins', sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  a{ color:var(--ink); text-decoration:none; }
+  a:hover{ color:var(--sage); }
+  .serif{ font-family:'Spectral', serif; }
+  .wrap{ max-width:1300px; margin:0 auto; padding-left:40px; padding-right:40px; }
+  @media (max-width:900px){ .wrap{ padding-left:20px; padding-right:20px; } }
+
+  /* header */
+  header{ border-bottom:1px solid var(--border); }
+  .header-row{ display:flex; align-items:center; justify-content:space-between; gap:24px; padding:20px 0; flex-wrap:wrap; }
+  .logo{ font-size:20px; font-weight:700; display:flex; align-items:center; gap:6px; white-space:nowrap; }
+  .back-link{ font-size:13px; font-weight:500; letter-spacing:0.02em; }
+
+  .breadcrumb{ padding:22px 0 0; font-size:13px; color:var(--muted); }
+  .breadcrumb span{ color:var(--ink); }
+
+  .page-hero{ padding:36px 0 8px; }
+  .page-title{ font-size:38px; font-weight:600; margin:0 0 8px; }
+  .page-meta{ font-size:14.5px; color:var(--muted-warm); max-width:560px; line-height:1.7; }
+
+  /* lookup card */
+  .lookup-wrap{ padding:32px 0 12px; max-width:640px; }
+  .lookup-card{ background:var(--bg-panel); border:1px solid var(--border-warm); border-radius:12px; padding:30px 28px; }
+  .lookup-step-label{ font-size:12px; font-weight:600; letter-spacing:0.06em; text-transform:uppercase; color:var(--sage); margin-bottom:6px; }
+  .lookup-title{ font-size:19px; font-weight:600; margin-bottom:6px; }
+  .lookup-body{ font-size:13.5px; color:var(--muted-warm); line-height:1.7; margin-bottom:20px; }
+
+  #googleBtnContainer{ display:inline-block; }
+
+  .signed-chip{ display:flex; align-items:center; gap:10px; background:#fff; border:1px solid var(--border-warm); border-radius:999px; padding:6px 14px 6px 6px; margin-bottom:20px; width:fit-content; }
+  .signed-chip img{ width:28px; height:28px; border-radius:50%; }
+  .signed-chip .who{ font-size:13px; }
+  .signed-chip .who b{ font-weight:600; }
+  .signed-chip button{ background:none; border:none; color:var(--muted); text-decoration:underline; font-size:12px; cursor:pointer; font-family:inherit; padding:0; }
+
+  .field-label{ font-size:12px; font-weight:600; color:var(--muted-warm); margin-bottom:6px; display:block; }
+  .field-input{ width:100%; border:1px solid var(--border-warm); border-radius:8px; padding:12px 14px; font-size:14px; font-family:inherit; color:var(--ink); background:#fff; }
+  .field-input:focus{ outline:none; border-color:var(--sage); }
+  .field-row{ margin-bottom:16px; }
+  .field-error{ font-size:12px; color:var(--danger); margin-top:6px; min-height:14px; }
+
+  .btn-solid{ background:var(--ink); color:#fff; border:none; border-radius:999px; padding:12px 26px; font-size:13.5px; font-weight:600; cursor:pointer; font-family:inherit; letter-spacing:0.01em; }
+  .btn-solid:hover{ background:var(--sage); }
+  .btn-solid:disabled{ opacity:0.5; cursor:default; }
+
+  .lookup-note{ font-size:12px; color:var(--muted); margin-top:14px; line-height:1.6; }
+
+  /* results */
+  .results-wrap{ padding:36px 0 64px; }
+  .results-head{ display:flex; align-items:baseline; justify-content:space-between; gap:16px; margin-bottom:18px; flex-wrap:wrap; }
+  .results-title{ font-size:20px; font-weight:600; }
+  .results-count{ font-size:13px; color:var(--muted); }
+
+  .order-card{ border:1px solid var(--border-warm); border-radius:10px; padding:22px 24px; margin-bottom:16px; }
+  .order-card-head{ display:flex; align-items:flex-start; justify-content:space-between; gap:16px; flex-wrap:wrap; border-bottom:1px solid var(--border); padding-bottom:14px; margin-bottom:14px; }
+  .order-number{ font-family:'Spectral', serif; font-size:17px; font-weight:600; }
+  .order-date{ font-size:12.5px; color:var(--muted); margin-top:4px; }
+  .order-total-block{ text-align:right; }
+  .order-total-label{ font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:0.05em; }
+  .order-total-value{ font-size:18px; font-weight:600; font-variant-numeric:tabular-nums; }
+  .order-items{ font-size:13.5px; color:var(--muted-warm); line-height:1.8; margin-bottom:12px; }
+  .order-meta-grid{ display:grid; grid-template-columns:repeat(auto-fit, minmax(160px, 1fr)); gap:10px 20px; font-size:12.5px; }
+  .order-meta-label{ color:var(--muted); text-transform:uppercase; letter-spacing:0.04em; font-size:10.5px; margin-bottom:2px; }
+  .order-meta-value{ color:var(--ink); }
+
+  .empty-state, .error-state{ border:1px dashed var(--border-warm); border-radius:10px; padding:36px 24px; text-align:center; color:var(--muted-warm); font-size:14px; line-height:1.7; }
+  .error-state{ color:var(--danger); border-color:var(--danger); }
+
+  .spinner{ display:inline-block; width:16px; height:16px; border:2px solid var(--border-warm); border-top-color:var(--sage); border-radius:50%; animation:spin .7s linear infinite; vertical-align:-3px; margin-right:8px; }
+  @keyframes spin{ to{ transform:rotate(360deg); } }
+  @media (prefers-reduced-motion:reduce){ .spinner{ animation:none; } }
+
+  /* footer */
+  footer{ background:var(--bg-alt); padding:56px 0 28px; margin-top:20px; }
+  .footer-grid{ display:grid; grid-template-columns:1.4fr 1fr 1fr 1fr; gap:32px; }
+  @media (max-width:700px){ .footer-grid{ grid-template-columns:1fr 1fr; } }
+  .footer-brand{ font-size:18px; font-weight:700; margin-bottom:14px; }
+  .footer-addr{ font-size:13px; color:var(--muted); line-height:1.8; }
+  .footer-head{ font-size:14px; font-weight:600; margin-bottom:14px; }
+  .footer-list{ font-size:13px; color:var(--muted); display:flex; flex-direction:column; gap:8px; }
+  .footer-list a{ color:inherit; }
+  .footer-bottom{ margin-top:32px; padding-top:20px; border-top:1px solid var(--border); font-size:12px; color:var(--muted); }
+</style>
+</head>
+<body>
+<div style="min-height:100vh;">
+
+  <!-- HEADER -->
+  <header>
+    <div class="wrap header-row">
+      <a class="logo" href="index.html">&#127807; Prism Yoga</a>
+      <a class="back-link" href="index.html">&larr; Back to Shop</a>
+    </div>
+  </header>
+
+  <div class="wrap breadcrumb"><a href="index.html">Home</a> &nbsp;&#8250;&nbsp; <span>My Orders</span></div>
+
+  <div class="wrap page-hero">
+    <h1 class="page-title serif">My Orders</h1>
+    <div class="page-meta">Sign in with the Google account you used at checkout, then confirm the mobile number on the order to see your order history.</div>
+  </div>
+
+  <div class="wrap lookup-wrap">
+    <div class="lookup-card">
+
+      <div id="signInStep">
+        <div class="lookup-step-label">Step 1 of 2</div>
+        <div class="lookup-title">Sign in to continue</div>
+        <div class="lookup-body">We use your Google account only to confirm it's really you — we never post anything or read your inbox.</div>
+        <div id="googleBtnContainer"></div>
+      </div>
+
+      <div id="mobileStep" hidden>
+        <div class="lookup-step-label">Step 2 of 2</div>
+        <div class="lookup-title">Confirm your mobile number</div>
+        <div class="lookup-body">Enter the mobile number you gave at checkout. We match it against your account email to find your orders.</div>
+
+        <div id="signedChip" class="signed-chip" hidden>
+          <img id="signedAvatar" alt="" />
+          <span class="who">Signed in as <b id="signedName"></b></span>
+          <button type="button" id="switchAccountBtn">Switch account</button>
+        </div>
+
+        <div class="field-row">
+          <label class="field-label" for="mobileInput">Mobile Number</label>
+          <input class="field-input" id="mobileInput" placeholder="10-digit mobile number" maxlength="15" inputmode="tel" autocomplete="tel" />
+          <div class="field-error" id="mobileError"></div>
+        </div>
+
+        <button type="button" class="btn-solid" id="viewOrdersBtn">View My Orders</button>
+        <div class="lookup-note">Your email and mobile number must both match the details on an order for it to appear below.</div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="wrap results-wrap" id="resultsWrap" hidden>
+    <div class="results-head">
+      <div class="results-title serif">Order History</div>
+      <div class="results-count" id="resultsCount"></div>
+    </div>
+    <div id="resultsBody"></div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="wrap footer-grid">
+      <div>
+        <div class="footer-brand">&#127807; Prism Yoga</div>
+        <div class="footer-addr">Address: Bengaluru, Karnataka, India<br/>Email: HelpDesk@prism.yoga<br/>Phone: +91 8197029312</div>
+      </div>
+      <div>
+        <div class="footer-head">Categories</div>
+        <div class="footer-list"><span>Yoga Balls</span><span>Yoga Bags</span><span>Dumbbells</span><span>Resistance Bands</span></div>
+      </div>
+      <div>
+        <div class="footer-head">Useful Links</div>
+        <div class="footer-list"><a href="privacy-policy.html">Privacy Policy</a><a href="returns.html">Returns</a><a href="contact.html">Contact Us</a></div>
+      </div>
+      <div>
+        <div class="footer-head">Footer Menu</div>
+        <div class="footer-list"><span>New Collection</span><a href="contact.html">Contact Us</a><a href="orders.html">My Orders</a></div>
+      </div>
+    </div>
+    <div class="wrap footer-bottom">&copy; 2026 Prism Yoga. All Rights Reserved.</div>
+  </footer>
+</div>
+
+<script>
+(function(){
+  var GOOGLE_CLIENT_ID = '590946552242-ptai94bp8lp1mvb9qsd1gofj5hnsnjb0.apps.googleusercontent.com';
+  var AUTH_STORAGE_KEY = 'prismYogaUser';
+  var ORDERS_WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbyZ2m2TLEqDoDxNc7PV7sjIC8uzMxgRPMXOQVuIZq6Ez8WciQzl-hvnIVp7y4SHIs8hTQ/exec';
+
+  var state = { user: null };
+
+  function esc(s){
+    return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function decodeJwt(token){
+    try {
+      var base64Url = token.split('.')[1];
+      var base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      var jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c){
+        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+      }).join(''));
+      return JSON.parse(jsonPayload);
+    } catch (e){ return null; }
+  }
+
+  function showMobileStep(){
+    document.getElementById('signInStep').hidden = true;
+    var mobileStep = document.getElementById('mobileStep');
+    mobileStep.hidden = false;
+    var chip = document.getElementById('signedChip');
+    if (state.user){
+      chip.hidden = false;
+      document.getElementById('signedAvatar').src = state.user.picture || '';
+      document.getElementById('signedName').textContent = state.user.name || state.user.email || 'you';
+    }
+  }
+
+  function showSignInStep(){
+    document.getElementById('mobileStep').hidden = true;
+    document.getElementById('signInStep').hidden = false;
+  }
+
+  function handleCredentialResponse(response){
+    var payload = decodeJwt(response.credential);
+    if (!payload) return;
+    state.user = { name: payload.name, email: payload.email, picture: payload.picture };
+    try { localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(state.user)); } catch (e){}
+    showMobileStep();
+  }
+
+  function switchAccount(){
+    state.user = null;
+    try { localStorage.removeItem(AUTH_STORAGE_KEY); } catch (e){}
+    if (window.google && google.accounts && google.accounts.id) {
+      google.accounts.id.disableAutoSelect();
+    }
+    showSignInStep();
+  }
+
+  function initGoogleAuth(){
+    try {
+      var saved = localStorage.getItem(AUTH_STORAGE_KEY);
+      if (saved) state.user = JSON.parse(saved);
+    } catch (e){}
+
+    function setup(){
+      if (!(window.google && google.accounts && google.accounts.id)) return false;
+      google.accounts.id.initialize({
+        client_id: GOOGLE_CLIENT_ID,
+        callback: handleCredentialResponse,
+        auto_select: false
+      });
+      google.accounts.id.renderButton(document.getElementById('googleBtnContainer'), {
+        theme: 'outline', size: 'medium', shape: 'pill', text: 'signin_with'
+      });
+      return true;
+    }
+
+    if (!setup()){
+      var tries = 0;
+      var poll = setInterval(function(){
+        tries += 1;
+        if (setup() || tries > 40) clearInterval(poll);
+      }, 250);
+    }
+
+    if (state.user) showMobileStep();
+  }
+
+  function setMobileError(msg){
+    document.getElementById('mobileError').textContent = msg || '';
+  }
+
+  function renderResults(orders){
+    var wrap = document.getElementById('resultsWrap');
+    var body = document.getElementById('resultsBody');
+    var count = document.getElementById('resultsCount');
+    wrap.hidden = false;
+
+    if (!orders.length){
+      count.textContent = '';
+      body.innerHTML = '<div class="empty-state">No orders found for this email and mobile number combination. Double-check the mobile number you used at checkout, or <a href="contact.html">contact us</a> for help.</div>';
+      return;
+    }
+
+    count.textContent = orders.length + (orders.length === 1 ? ' order' : ' orders');
+    body.innerHTML = orders.map(function(o){
+      var ts = o['Timestamp'];
+      var dateStr = ts;
+      try { dateStr = new Date(ts).toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' }); } catch (e){}
+      var total = o['Total'];
+      var totalStr = (total === '' || total == null) ? '—' : ('₹' + total);
+      return (
+        '<div class="order-card">' +
+          '<div class="order-card-head">' +
+            '<div>' +
+              '<div class="order-number serif">Order #' + esc(o['Order Number'] || '—') + '</div>' +
+              '<div class="order-date">Placed ' + esc(dateStr) + '</div>' +
+            '</div>' +
+            '<div class="order-total-block">' +
+              '<div class="order-total-label">Total</div>' +
+              '<div class="order-total-value">' + esc(totalStr) + '</div>' +
+            '</div>' +
+          '</div>' +
+          '<div class="order-items">' + esc(o['Items'] || '—') + '</div>' +
+          '<div class="order-meta-grid">' +
+            '<div><div class="order-meta-label">Payment Method</div><div class="order-meta-value">' + esc(o['Payment Method'] || '—') + '</div></div>' +
+            '<div><div class="order-meta-label">Delivery Method</div><div class="order-meta-value">' + esc(o['Delivery Method'] || '—') + '</div></div>' +
+            '<div><div class="order-meta-label">Shipping To</div><div class="order-meta-value">' + esc(o['City'] || '—') + ', ' + esc(o['State'] || '') + '</div></div>' +
+          '</div>' +
+        '</div>'
+      );
+    }).join('');
+  }
+
+  function renderLoading(){
+    var wrap = document.getElementById('resultsWrap');
+    var body = document.getElementById('resultsBody');
+    var count = document.getElementById('resultsCount');
+    wrap.hidden = false;
+    count.textContent = '';
+    body.innerHTML = '<div class="empty-state"><span class="spinner"></span>Looking up your orders&hellip;</div>';
+  }
+
+  function renderError(){
+    var wrap = document.getElementById('resultsWrap');
+    var body = document.getElementById('resultsBody');
+    var count = document.getElementById('resultsCount');
+    wrap.hidden = false;
+    count.textContent = '';
+    body.innerHTML = '<div class="error-state">Something went wrong while looking up your orders. Please try again in a moment, or <a href="contact.html">contact us</a> if it keeps happening.</div>';
+  }
+
+  function viewOrders(){
+    if (!state.user){ showSignInStep(); return; }
+    var raw = document.getElementById('mobileInput').value.trim();
+    var digits = raw.replace(/\D/g, '');
+    if (digits.length < 10){
+      setMobileError('Enter the 10-digit mobile number used at checkout.');
+      return;
+    }
+    setMobileError('');
+    renderLoading();
+
+    var url = ORDERS_WEBAPP_URL + '?mode=myorders&email=' + encodeURIComponent(state.user.email) + '&mobile=' + encodeURIComponent(digits);
+    fetch(url)
+      .then(function(res){ return res.json(); })
+      .then(function(json){
+        if (!json || json.ok !== true){ renderError(); return; }
+        renderResults(json.orders || []);
+      })
+      .catch(function(){ renderError(); });
+  }
+
+  document.getElementById('switchAccountBtn').addEventListener('click', switchAccount);
+  document.getElementById('viewOrdersBtn').addEventListener('click', viewOrders);
+  document.getElementById('mobileInput').addEventListener('keydown', function(e){
+    if (e.key === 'Enter') viewOrders();
+  });
+
+  initGoogleAuth();
+})();
+</script>
+</body>
+</html>
